@@ -31,7 +31,6 @@ source .venv/bin/activate  # On Windows: .\venv\Scripts\activate
 CREATE DATABASE supportsystem;
 ```
 
-```
 
 1. Install dependencies:
 ```bash
