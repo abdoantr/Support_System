@@ -103,7 +103,6 @@ class UserSettings(models.Model):
     
     def get_default_appearance(self):
         return {
-            'theme': 'light',
             'accent_color': 'primary',
             'font_size': 'medium',
         }

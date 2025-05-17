@@ -45,8 +45,8 @@
     --text-light: #ffffff;
 
     /* Background Colors */
-    --bg-light: #ffffff;
-    --bg-dark: var(--neutral-900);
+    --bg-primary: #ffffff;
+    --bg-secondary: var(--neutral-50);
 
     /* Border Colors */
     --border-light: var(--neutral-200);
@@ -58,26 +58,3 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
-
-/* Dark Theme Variables */
-.dark-theme {
-    /* Text Colors */
-    --text-primary: var(--neutral-100);
-    --text-secondary: var(--neutral-300);
-    --text-tertiary: var(--neutral-400);
-    
-    /* Background Colors */
-    --bg-light: var(--neutral-900);
-    --bg-dark: var(--neutral-800);
-    
-    /* Border Colors */
-    --border-light: var(--neutral-700);
-    --border-dark: var(--neutral-600);
-    
-    /* Shadow Colors - darker for dark mode */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.25);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-}
-
