@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Support System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+    .filters {
+        margin-bottom: 1.5rem;
+    }
+    .chart-container {
+        position: relative;
+        height: 250px;
+        margin-bottom: 1.5rem;
+    }
+    .performance-card {
+        border-left: 4px solid #3498db;
+        background-color: rgba(52, 152, 219, 0.05);
+    }
+    .staff-metrics-card {
+        border-left: 4px solid #9b59b6;
+        background-color: rgba(155, 89, 182, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 m-0">Dashboard</h1>
+        
+        <!-- Time Period Filters -->
+        <div class="filters">
+            <div class="btn-group" role="group">
+                <a href="{% url 'core:dashboard' %}" class="btn btn-outline-primary {% if filter_period == 'all' %}active{% endif %}">All Time</a>
+                <a href="{% url 'core:dashboard' %}?period=week" class="btn btn-outline-primary {% if filter_period == 'week' %}active{% endif %}">Last Week</a>
+                <a href="{% url 'core:dashboard' %}?period=month" class="btn btn-outline-primary {% if filter_period == 'month' %}active{% endif %}">Last Month</a>
+                <a href="{% url 'core:dashboard' %}?period=quarter" class="btn btn-outline-primary {% if filter_period == 'quarter' %}active{% endif %}">Last Quarter</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card primary h-100">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase text-muted mb-2">Open Tickets</h6>
+                            <h2 class="mb-0">{{ open_tickets_count }}</h2>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-circle bg-primary text-white">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card success h-100">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase text-muted mb-2">Resolved Today</h6>
+                            <h2 class="mb-0">{{ resolved_today }}</h2>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-circle bg-success text-white">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card warning h-100">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase text-muted mb-2">Response Time</h6>
+                            <h2 class="mb-0">{{ avg_response_time }}</h2>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-circle bg-warning text-white">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card danger h-100">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase text-muted mb-2">Overdue</h6>
+                            <h2 class="mb-0">{{ overdue_tickets }}</h2>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-circle bg-danger text-white">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        {% if filter_period == 'week' %}
+                            Ticket Activity (Last Week)
+                        {% elif filter_period == 'month' %}
+                            Ticket Activity (Last Month)
+                        {% elif filter_period == 'quarter' %}
+                            Ticket Activity (Last Quarter)
+                        {% else %}
+                            Ticket Activity (Last 7 Days)
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ticketTrendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Ticket Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="statusDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Indicators -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card performance-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Performance Indicators</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Avg. Resolution Time</h6>
+                                <h4>{{ avg_resolution_time }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">First Response Time</h6>
+                                <h4>{{ avg_response_time }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Tickets per Day</h6>
+                                <h4>{{ daily_created_avg|default:"0" }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Satisfaction Rate</h6>
+                                <h4>{{ satisfaction_rate|default:"N/A" }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Metrics (only visible to staff) -->
+    {% if staff_metrics %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card staff-metrics-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Your Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Assigned Tickets</h6>
+                                <h4>{{ staff_metrics.assigned_count }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Resolved Tickets</h6>
+                                <h4>{{ staff_metrics.resolved_count }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Resolution Rate</h6>
+                                <h4>{{ staff_metrics.resolution_rate }}%</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Avg. Handling Time</h6>
+                                <h4>{{ staff_metrics.avg_handling_time }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Recent Tickets -->
+        <div class="col-12 col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Tickets</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in recent_tickets %}
+                                <tr>
+                                    <td>#{{ ticket.id }}</td>
+                                    <td>
+                                        <a href="{% url 'core:ticket_detail' ticket.id %}">{{ ticket.title }}</a>
+                                    </td>
+                                    <td>
+                                        <span class="badge status-{{ ticket.status }}">
+                                            {{ ticket.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="priority-{{ ticket.priority|lower }}">
+                                            <i class="fas fa-circle"></i>
+                                            {{ ticket.get_priority_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ ticket.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No recent tickets</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-12 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'core:ticket_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> New Ticket
+                        </a>
+                        {% if user.role == 'TECHNICIAN' %}
+                        <button class="btn btn-outline-primary" onclick="toggleAvailability()">
+                            <i class="fas fa-toggle-on"></i> Toggle Availability
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'core:service_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list"></i> View Services
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<meta name="toggle-availability-url" content="{% url 'core:toggle_availability' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // Initialize the charts when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Parse the chart data from the server
+        const chartData = JSON.parse('{{ chart_data|safe }}');
+        
+        // Setup the ticket trends chart
+        const trendsCtx = document.getElementById('ticketTrendsChart').getContext('2d');
+        const trendsChart = new Chart(trendsCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.daily.labels,
+                datasets: [
+                    {
+                        label: 'Created',
+                        data: chartData.daily.created,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.2,
+                        fill: true
+                    },
+                    {
+                        label: 'Resolved',
+                        data: chartData.daily.resolved,
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        tension: 0.2,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Setup the status distribution chart
+        const statusCtx = document.getElementById('statusDistributionChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: chartData.status.labels,
+                datasets: [{
+                    data: chartData.status.counts,
+                    backgroundColor: [
+                        '#3498db', // New
+                        '#f39c12', // Assigned
+                        '#9b59b6', // In Progress
+                        '#1abc9c', // Pending
+                        '#2ecc71', // Resolved
+                        '#34495e'  // Closed
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+    });
+
+    // Toggle availability function (for technicians)
+    function toggleAvailability() {
+        const url = document.querySelector('meta[name="toggle-availability-url"]').content;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert(data.message);
+                
+                // Update the button text
+                const availabilityBtn = document.querySelector('button[onclick="toggleAvailability()"]');
+                if (availabilityBtn) {
+                    availabilityBtn.innerHTML = data.is_available ? 
+                        '<i class="fas fa-toggle-on"></i> Set Unavailable' : 
+                        '<i class="fas fa-toggle-off"></i> Set Available';
+                }
+            } else {
+                alert(data.error || 'Failed to update availability');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating availability status');
+        });
+    }
+
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,432 @@
+/* Import Variables */
+@import url('variables.css');
+
+/* Header Styles */
+.service-header {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.service-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("../img/pattern.svg") center/cover;
+    opacity: 0.1;
+    animation: scaleIn 1s ease-out;
+}
+
+.service-header .badge {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.service-header h1 {
+    animation: slideInLeft 0.8s ease-out;
+    color: var(--text-dark);
+}
+
+.service-header p {
+    animation: slideInLeft 1s ease-out;
+    color: var(--neutral-200);
+}
+
+.service-header .btn {
+    animation: slideInLeft 1.2s ease-out;
+}
+
+.service-header img {
+    animation: slideInRight 1s ease-out;
+    transition: transform 0.3s ease;
+}
+
+.service-header img:hover {
+    transform: scale(1.05);
+}
+
+/* Feature Card Styles */
+.feature-card {
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: none;
+    border-radius: 15px;
+    background: var(--bg-light);
+    animation: fadeIn 0.6s ease-out;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(var(--primary-500), 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    transition: all 0.3s ease;
+    color: var(--primary-600);
+}
+
+.feature-card:hover .feature-icon {
+    background: var(--primary-500);
+}
+
+.feature-card:hover .feature-icon i {
+    color: var(--text-light);
+    transform: scale(1.1);
+}
+
+.feature-icon i {
+    font-size: 1.25rem;
+    color: var(--primary-600);
+    transition: all 0.3s ease;
+}
+
+/* Price Card Styles */
+.price-card {
+    background: var(--bg-light);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    animation: scaleIn 0.6s ease-out;
+}
+
+.price-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.price-card .display-4 {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: pulse 3s infinite;
+    color: var(--text-light);
+}
+
+/* Related Service Card Styles */
+.related-service-card {
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    background: var(--bg-light);
+    animation: fadeIn 0.6s ease-out;
+}
+
+.related-service-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.related-service-card img {
+    height: 200px;
+    object-fit: cover;
+    transition: all 0.4s ease;
+}
+
+.related-service-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Button Styles */
+.btn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn:hover::after {
+    width: 300%;
+    height: 300%;
+}
+
+.btn-primary {
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+/* Process Section Styles */
+.process-step {
+    text-align: center;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.process-step .feature-icon {
+    margin: 0 auto 1rem;
+    animation: bounce 2s infinite;
+}
+
+/* Service Detail Header */
+.service-detail-header {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    color: var(--text-light);
+    position: relative;
+    overflow: hidden;
+    padding: 4rem 0;
+}
+
+.service-detail-header h1 {
+    color: var(--text-light);
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.service-detail-header p {
+    color: var(--neutral-200);
+    font-size: 1.1rem;
+    max-width: 600px;
+}
+
+/* Service Content */
+.service-content {
+    background: var(--bg-light);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-top: -3rem;
+    position: relative;
+    z-index: 1;
+    box-shadow: var(--shadow-lg);
+}
+
+.service-description {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
+
+/* Feature List */
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateX(5px);
+    background: var(--primary-50);
+}
+
+.feature-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-50);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: var(--primary-600);
+    flex-shrink: 0;
+}
+
+.feature-content h3 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.feature-content p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Pricing Section */
+.pricing-card {
+    background: var(--bg-light);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+}
+
+.price-amount {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-600);
+    margin: 1rem 0;
+}
+
+.price-period {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.pricing-features {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.pricing-features li {
+    color: var(--text-secondary);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+}
+
+.pricing-features li:last-child {
+    border-bottom: none;
+}
+
+.pricing-features i {
+    color: var(--success-500);
+    margin-right: 0.75rem;
+}
+
+/* Related Services */
+.related-services {
+    margin-top: 4rem;
+}
+
+.related-services h2 {
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+}
+
+.related-card {
+    background: var(--bg-light);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+}
+
+.related-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.related-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.related-card .card-body {
+    padding: 1.5rem;
+}
+
+.related-card .card-title {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.related-card .card-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .related-service-card {
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .service-header {
+        text-align: center;
+        padding: 3rem 0;
+    }
+    
+    .service-header img {
+        margin-top: 2rem;
+        max-width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .feature-card {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .service-header h1 {
+        font-size: 2rem;
+    }
+    
+    .service-header .lead {
+        font-size: 1rem;
+    }
+    
+    .related-service-card img {
+        height: 160px;
+    }
+    
+    .price-card {
+        margin-top: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .service-header .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .feature-icon i {
+        font-size: 1rem;
+    }
+    
+    .process-step {
+        margin-bottom: 2rem;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}

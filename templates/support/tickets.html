@@ -1,0 +1,655 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Support Tickets - Support System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tickets.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Tickets Header -->
+<section class="tickets-header text-white py-4" style="padding-bottom: 16rem !important;">
+    <div class="container py-3">
+        <div class="row justify-content-between align-items-center">
+            <div class="col-lg-6">
+                <h1 class="h3 mb-2">Support Tickets</h1>
+                <p class="lead mb-0 opacity-75">Track and manage your support requests</p>
+            </div>
+            <div class="col-lg-6 text-lg-end mt-3 mt-lg-0">
+                <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#newTicketModal">
+                    <i class="fas fa-plus-circle me-2"></i>Create New Ticket
+                    </button>
+            </div>
+        </div>
+    </div>
+    <div class="tickets-header-wave">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 264"><path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>
+    </div>
+</section>
+
+<!-- Tickets Dashboard -->
+<section class="tickets-dashboard py-4">
+    <div class="container">
+        <div class="row mb-4">
+            <!-- Stats Cards -->
+            <div class="col-md-3 mb-3">
+                <div class="stat-card bg-primary text-white">
+                    <div class="stat-card-inner">
+                        <div class="stat-icon">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <div class="stat-data">
+                            <h3 class="stat-value">{{ tickets.count }}</h3>
+                            <p class="stat-label mb-0">Total Tickets</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card bg-success text-white">
+                    <div class="stat-card-inner">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-data">
+                            <h3 class="stat-value">{{ resolved_tickets_count }}</h3>
+                            <p class="stat-label mb-0">Resolved</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card bg-warning text-white">
+                    <div class="stat-card-inner">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-data">
+                            <h3 class="stat-value">{{ in_progress_tickets_count }}</h3>
+                            <p class="stat-label mb-0">In Progress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card bg-danger text-white">
+                    <div class="stat-card-inner">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="stat-data">
+                            <h3 class="stat-value">{{ new_tickets_count }}</h3>
+                            <p class="stat-label mb-0">New</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="row mb-4">
+            <div class="col-lg-8 mb-3 mb-lg-0">
+                <div class="ticket-filters d-flex flex-wrap">
+                    <div class="btn-group flex-wrap me-2 mb-2 mb-md-0" role="group" aria-label="Filter buttons">
+                        <button type="button" class="btn btn-outline-primary active" data-filter="all">
+                            <i class="fas fa-list me-1"></i> All
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" data-filter="new">
+                            <i class="fas fa-exclamation-circle me-1"></i> New
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" data-filter="in_progress">
+                            <i class="fas fa-spinner me-1"></i> In Progress
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" data-filter="resolved">
+                            <i class="fas fa-check-circle me-1"></i> Resolved
+                    </button>
+                    </div>
+                    <div class="btn-group flex-wrap mb-2 mb-md-0" role="group" aria-label="Priority buttons">
+                        <button type="button" class="btn btn-outline-secondary" data-priority="all">All Priorities</button>
+                        <button type="button" class="btn btn-outline-secondary" data-priority="low">Low</button>
+                        <button type="button" class="btn btn-outline-secondary" data-priority="medium">Medium</button>
+                        <button type="button" class="btn btn-outline-secondary" data-priority="high">High</button>
+                        <button type="button" class="btn btn-outline-secondary" data-priority="urgent">Urgent</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="ticket-search">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0 ps-0" id="ticketSearch" placeholder="Search tickets...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tickets Table -->
+        <div class="card tickets-card">
+            <div class="card-body p-0">
+        <div class="table-responsive">
+                    <table class="table tickets-table mb-0">
+                <thead>
+                    <tr>
+                                <th class="sortable" data-sort="id">
+                                    <div class="d-flex align-items-center">
+                                        <span>ID</span>
+                                        <i class="fas fa-sort ms-2"></i>
+                                    </div>
+                                </th>
+                        <th>Subject</th>
+                        <th>Service</th>
+                                <th class="sortable" data-sort="priority">
+                                    <div class="d-flex align-items-center">
+                                        <span>Priority</span>
+                                        <i class="fas fa-sort ms-2"></i>
+                                    </div>
+                                </th>
+                                <th class="sortable" data-sort="status">
+                                    <div class="d-flex align-items-center">
+                                        <span>Status</span>
+                                        <i class="fas fa-sort ms-2"></i>
+                                    </div>
+                                </th>
+                                <th class="sortable" data-sort="created">
+                                    <div class="d-flex align-items-center">
+                                        <span>Created</span>
+                                        <i class="fas fa-sort ms-2"></i>
+                                    </div>
+                                </th>
+                                <th class="sortable" data-sort="updated">
+                                    <div class="d-flex align-items-center">
+                                        <span>Last Update</span>
+                                        <i class="fas fa-sort ms-2"></i>
+                                    </div>
+                                </th>
+                                <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                            <tr class="ticket-row" data-status="{{ ticket.status }}" data-priority="{{ ticket.priority }}">
+                                <td class="ticket-id">#{{ ticket.id }}</td>
+                                <td>
+                                    <div class="ticket-subject-wrapper">
+                                        <a href="#" class="ticket-subject fw-medium text-truncate" data-bs-toggle="modal" data-bs-target="#ticketDetailModal{{ ticket.id }}">
+                                            {{ ticket.title }}
+                                        </a>
+                                        {% if ticket.attachments.exists %}
+                                        <span class="attachment-indicator ms-2" title="Has attachments">
+                                            <i class="fas fa-paperclip text-muted"></i>
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="service-badge">{{ ticket.service.name }}</span>
+                        </td>
+                                <td>
+                                    {% if ticket.priority == 'urgent' %}
+                                    <span class="priority-badge priority-urgent">
+                                        <i class="fas fa-exclamation-circle me-1"></i>Urgent
+                                    </span>
+                                    {% elif ticket.priority == 'high' %}
+                                    <span class="priority-badge priority-high">
+                                        <i class="fas fa-arrow-up me-1"></i>High
+                                    </span>
+                                    {% elif ticket.priority == 'low' %}
+                                    <span class="priority-badge priority-low">
+                                        <i class="fas fa-arrow-down me-1"></i>Low
+                                    </span>
+                                    {% else %}
+                                    <span class="priority-badge priority-medium">
+                                        <i class="fas fa-minus me-1"></i>Medium
+                            </span>
+                                    {% endif %}
+                        </td>
+                        <td>
+                                    {% if ticket.status == 'new' %}
+                                    <span class="status-badge status-new">
+                                        <i class="fas fa-circle me-1"></i>New
+                                    </span>
+                                    {% elif ticket.status == 'in_progress' %}
+                                    <span class="status-badge status-in-progress">
+                                        <i class="fas fa-circle me-1"></i>In Progress
+                                    </span>
+                                    {% elif ticket.status == 'resolved' %}
+                                    <span class="status-badge status-resolved">
+                                        <i class="fas fa-circle me-1"></i>Resolved
+                                    </span>
+                                    {% elif ticket.status == 'closed' %}
+                                    <span class="status-badge status-closed">
+                                        <i class="fas fa-circle me-1"></i>Closed
+                                    </span>
+                                    {% elif ticket.status == 'pending' %}
+                                    <span class="status-badge status-pending">
+                                        <i class="fas fa-circle me-1"></i>Pending
+                                    </span>
+                                    {% else %}
+                                    <span class="status-badge status-other">
+                                        <i class="fas fa-circle me-1"></i>{{ ticket.get_status_display }}
+                            </span>
+                                    {% endif %}
+                                </td>
+                                <td data-date="{{ ticket.created_at|date:'Y-m-d' }}">
+                                    <div class="ticket-date">
+                                        <span class="date">{{ ticket.created_at|date:"M d, Y" }}</span>
+                                        <span class="time text-muted">{{ ticket.created_at|date:"H:i" }}</span>
+                                    </div>
+                                </td>
+                                <td data-date="{{ ticket.updated_at|date:'Y-m-d' }}">
+                                    <div class="ticket-date">
+                                        <span class="date">{{ ticket.updated_at|date:"M d, Y" }}</span>
+                                        <span class="time text-muted">{{ ticket.updated_at|date:"H:i" }}</span>
+                                    </div>
+                        </td>
+                        <td>
+                                    <div class="action-buttons text-center">
+                                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#ticketDetailModal{{ ticket.id }}" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if ticket.status != 'closed' %}
+                                        <button type="button" class="btn btn-sm btn-success ms-1" data-bs-toggle="modal" data-bs-target="#updateTicketModal{{ ticket.id }}" title="Edit Ticket">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Ticket Detail Modal -->
+                    <div class="modal fade" id="ticketDetailModal{{ ticket.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                            <h5 class="modal-title d-flex align-items-center">
+                                                <span class="ticket-number">#{{ ticket.id }}</span>
+                                                <span class="modal-title-text ms-2">{{ ticket.title }}</span>
+                                            </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                            <div class="ticket-meta mb-4">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6 col-lg-3">
+                                                        <div class="meta-item">
+                                                            <div class="meta-label">Status</div>
+                                                            <div class="meta-value">
+                                                                {% if ticket.status == 'new' %}
+                                                                <span class="status-badge status-new">
+                                                                    <i class="fas fa-circle me-1"></i>New
+                                                                </span>
+                                                                {% elif ticket.status == 'in_progress' %}
+                                                                <span class="status-badge status-in-progress">
+                                                                    <i class="fas fa-circle me-1"></i>In Progress
+                                                                </span>
+                                                                {% elif ticket.status == 'resolved' %}
+                                                                <span class="status-badge status-resolved">
+                                                                    <i class="fas fa-circle me-1"></i>Resolved
+                                                                </span>
+                                                                {% elif ticket.status == 'closed' %}
+                                                                <span class="status-badge status-closed">
+                                                                    <i class="fas fa-circle me-1"></i>Closed
+                                                                </span>
+                                                                {% elif ticket.status == 'pending' %}
+                                                                <span class="status-badge status-pending">
+                                                                    <i class="fas fa-circle me-1"></i>Pending
+                                                                </span>
+                                                                {% else %}
+                                                                <span class="status-badge status-other">
+                                                                    <i class="fas fa-circle me-1"></i>{{ ticket.get_status_display }}
+                                                                </span>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-lg-3">
+                                                        <div class="meta-item">
+                                                            <div class="meta-label">Priority</div>
+                                                            <div class="meta-value">
+                                                                {% if ticket.priority == 'urgent' %}
+                                                                <span class="priority-badge priority-urgent">
+                                                                    <i class="fas fa-exclamation-circle me-1"></i>Urgent
+                                                                </span>
+                                                                {% elif ticket.priority == 'high' %}
+                                                                <span class="priority-badge priority-high">
+                                                                    <i class="fas fa-arrow-up me-1"></i>High
+                                                                </span>
+                                                                {% elif ticket.priority == 'low' %}
+                                                                <span class="priority-badge priority-low">
+                                                                    <i class="fas fa-arrow-down me-1"></i>Low
+                                                                </span>
+                                                                {% else %}
+                                                                <span class="priority-badge priority-medium">
+                                                                    <i class="fas fa-minus me-1"></i>Medium
+                                                                </span>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-lg-3">
+                                                        <div class="meta-item">
+                                                            <div class="meta-label">Created</div>
+                                                            <div class="meta-value">
+                                                                {{ ticket.created_at|date:"M d, Y H:i" }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-lg-3">
+                                                        <div class="meta-item">
+                                                            <div class="meta-label">Updated</div>
+                                                            <div class="meta-value">
+                                                                {{ ticket.updated_at|date:"M d, Y H:i" }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="meta-item">
+                                                            <div class="meta-label">Service</div>
+                                                            <div class="meta-value">
+                                                                <span class="service-badge">{{ ticket.service.name }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% if ticket.assigned_to %}
+                                            <div class="col-md-6">
+                                                        <div class="meta-item">
+                                                            <div class="meta-label">Assigned To</div>
+                                                            <div class="meta-value">
+                                                                <span class="assigned-badge">
+                                                                    <i class="fas fa-user me-1"></i>
+                                                                    {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="ticket-content mb-4">
+                                                <h6 class="ticket-section-title">Description</h6>
+                                                <div class="ticket-description p-3 bg-light rounded">
+                                                    {{ ticket.description|linebreaks }}
+                                                </div>
+                                            </div>
+                                            
+                                            {% if ticket.attachments.exists %}
+                                            <div class="ticket-attachments mb-4">
+                                                <h6 class="ticket-section-title">Attachments</h6>
+                                                <div class="attachment-list">
+                                                    {% for attachment in ticket.attachments.all %}
+                                                    <div class="attachment-item">
+                                                        <div class="attachment-icon">
+                                                            <i class="fas fa-file"></i>
+                                                        </div>
+                                                        <div class="attachment-details">
+                                                            <a href="{{ attachment.file.url }}" target="_blank" class="attachment-name">
+                                                                {{ attachment.file.name|cut:"ticket_attachments/"|truncatechars:40 }}
+                                                            </a>
+                                                            <div class="attachment-meta">
+                                                                <span class="attachment-size">{{ attachment.file.size|filesizeformat }}</span>
+                                                                <span class="attachment-date">Uploaded {{ attachment.uploaded_at|date:"M d, Y" }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <a href="{{ attachment.file.url }}" download class="attachment-download" title="Download">
+                                                            <i class="fas fa-download"></i>
+                                                        </a>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+                                            {% if ticket.comments.exists %}
+                                            <div class="ticket-comments">
+                                                <h6 class="ticket-section-title">Comments</h6>
+                                                <div class="comments-list">
+                                                    {% for comment in ticket.comments.all %}
+                                                    <div class="comment-item {% if comment.is_internal %}comment-internal{% endif %}">
+                                                        <div class="comment-avatar">
+                                                            {% if comment.author.avatar %}
+                                                            <img src="{{ comment.author.avatar.url }}" alt="{{ comment.author.get_full_name }}">
+                                                            {% else %}
+                                                            <div class="avatar-placeholder">
+                                                                {{ comment.author.get_initials }}
+                                                            </div>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="comment-content">
+                                                            <div class="comment-header">
+                                                                <div class="comment-author">
+                                                                    {{ comment.author.get_full_name|default:comment.author.username }}
+                                                                    {% if comment.author.is_staff %}
+                                                                    <span class="staff-badge">Staff</span>
+                                                                    {% endif %}
+                                                                </div>
+                                                                <div class="comment-time">
+                                                                    {{ comment.created_at|date:"M d, Y H:i" }}
+                                                                </div>
+                                                            </div>
+                                                            <div class="comment-text">
+                                                                {{ comment.content|linebreaks }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            {% if ticket.status != 'closed' %}
+                                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateTicketModal{{ ticket.id }}">
+                                                <i class="fas fa-edit me-1"></i>Update Ticket
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Update Ticket Modal -->
+                            <div class="modal fade" id="updateTicketModal{{ ticket.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">
+                                                <i class="fas fa-edit me-2"></i>Update Ticket #{{ ticket.id }}
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form id="updateTicketForm{{ ticket.id }}" action="{% url 'core:ticket_update' ticket_id=ticket.id %}" method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-medium">Subject*</label>
+                                                    <input type="text" class="form-control" name="subject" value="{{ ticket.title }}" required>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-medium">Description*</label>
+                                                    <textarea class="form-control" name="description" rows="5" required>{{ ticket.description }}</textarea>
+                                                </div>
+
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-medium">Priority</label>
+                                                            <select class="form-select" name="priority">
+                                                                <option value="low" {% if ticket.priority == 'low' %}selected{% endif %}>Low</option>
+                                                                <option value="medium" {% if ticket.priority == 'medium' %}selected{% endif %}>Medium</option>
+                                                                <option value="high" {% if ticket.priority == 'high' %}selected{% endif %}>High</option>
+                                                                <option value="urgent" {% if ticket.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    {% if user.is_staff %}
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-medium">Status</label>
+                                                            <select class="form-select" name="status">
+                                                                <option value="new" {% if ticket.status == 'new' %}selected{% endif %}>New</option>
+                                                                <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                                                <option value="pending" {% if ticket.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                                <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                                                <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-medium">Add Attachments</label>
+                                                    <div class="custom-file-upload">
+                                                        <input type="file" class="form-control" name="attachments" multiple id="fileUpload{{ ticket.id }}">
+                                                        <div class="file-upload-info">
+                                                            <i class="fas fa-cloud-upload-alt me-2"></i>
+                                                            <span>Drop files here or click to upload</span>
+                                                            <small class="d-block mt-1">You can upload multiple files (max 5MB each)</small>
+                                                        </div>
+                                                    </div>
+                                    </div>
+
+                                    {% if ticket.attachments.exists %}
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-medium">Current Attachments</label>
+                                                    <div class="current-attachments">
+                                            {% for attachment in ticket.attachments.all %}
+                                                        <div class="current-attachment-item">
+                                                            <i class="fas fa-file me-2"></i>
+                                                            <span class="attachment-name">{{ attachment.file.name|cut:"ticket_attachments/"|truncatechars:30 }}</span>
+                                                            <a href="{{ attachment.file.url }}" target="_blank" class="attachment-preview ms-2">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                        </div>
+                                            {% endfor %}
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+
+                                                {% if user.is_staff %}
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-medium">Add Comment (Optional)</label>
+                                                    <textarea class="form-control" name="comment" rows="3" placeholder="Add a comment to this ticket..."></textarea>
+                                                    <div class="form-check mt-2">
+                                                        <input class="form-check-input" type="checkbox" id="internalComment{{ ticket.id }}" name="internal_comment">
+                                                        <label class="form-check-label" for="internalComment{{ ticket.id }}">
+                                                            Internal comment (only visible to staff)
+                                                        </label>
+                                                    </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-save me-1"></i>Update Ticket
+                                                </button>
+                                            </div>
+                                        </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+                </div>
+            </div>
+        </div>
+
+        {% if not tickets %}
+        <div class="empty-state-container text-center py-5">
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <h3 class="empty-state-title">No Tickets Found</h3>
+                <p class="empty-state-message">You haven't created any support tickets yet.</p>
+                <button class="btn btn-primary btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#newTicketModal">
+                    <i class="fas fa-plus-circle me-2"></i>Create Your First Ticket
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- New Ticket Modal -->
+<div class="modal fade" id="newTicketModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>Create New Support Ticket
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="newTicketForm" action="{% url 'core:ticket_create' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Service*</label>
+                        <select class="form-select" name="service" required>
+                            <option value="">Select a service...</option>
+                            {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Subject*</label>
+                        <input type="text" class="form-control" name="subject" placeholder="Brief summary of your issue" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Description*</label>
+                        <textarea class="form-control" name="description" rows="5" placeholder="Provide details about your issue..." required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Priority</label>
+                        <select class="form-select" name="priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>Select a priority level based on the urgency of your issue.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Attachments</label>
+                        <div class="custom-file-upload">
+                            <input type="file" class="form-control" name="attachments" multiple id="newTicketFileUpload">
+                            <div class="file-upload-info">
+                                <i class="fas fa-cloud-upload-alt me-2"></i>
+                                <span>Drop files here or click to upload</span>
+                                <small class="d-block mt-1">You can upload multiple files (max 5MB each)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-1"></i>Submit Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/tickets.js' %}"></script>
+{% endblock %}

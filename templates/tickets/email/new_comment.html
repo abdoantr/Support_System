@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New Comment on Your Ticket</title>
+</head>
+<body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #333;">New Comment on Your Ticket</h2>
+        <p>Hello {{ user.get_full_name|default:user.email }},</p>
+        <p>A new comment has been added to your ticket:</p>
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <p><strong>Ticket #:</strong> {{ ticket.id }}</p>
+            <p><strong>Title:</strong> {{ ticket.title }}</p>
+            <p><strong>Status:</strong> {{ ticket.get_status_display }}</p>
+        </div>
+        <p>Please log in to your account to view the comment and respond if needed.</p>
+        <p>Best regards,<br>Support System Team</p>
+    </div>
+</body>
+</html>

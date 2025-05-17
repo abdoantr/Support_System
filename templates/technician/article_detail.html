@@ -1,0 +1,645 @@
+{% extends 'technician/base.html' %}
+
+{% block title %}{{ article.title|default:"Article Detail" }} - Knowledge Base{% endblock %}
+
+{% block extra_css %}
+<style>
+    .article-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .article-header {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 30px;
+    }
+    
+    .article-tag {
+        display: inline-block;
+        padding: 4px 10px;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    
+    .article-metadata {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .article-metadata-item {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 20px;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+    
+    .article-metadata-item i {
+        margin-right: 5px;
+    }
+    
+    .article-content {
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+    
+    .article-content h2 {
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        font-size: 1.75rem;
+    }
+    
+    .article-content h3 {
+        margin-top: 1.25rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.5rem;
+    }
+    
+    .article-content p {
+        margin-bottom: 1.25rem;
+    }
+    
+    .article-content ul, .article-content ol {
+        margin-bottom: 1.25rem;
+        padding-left: 1.5rem;
+    }
+    
+    .article-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .article-content img {
+        max-width: 100%;
+        border-radius: 5px;
+        margin: 10px 0;
+    }
+    
+    .article-content code {
+        background-color: #f8f9fa;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-size: 0.9rem;
+    }
+    
+    .article-content pre {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+        margin-bottom: 1.25rem;
+    }
+    
+    .article-content blockquote {
+        border-left: 4px solid #3498db;
+        padding-left: 1rem;
+        font-style: italic;
+        color: #6c757d;
+        margin-bottom: 1.25rem;
+    }
+    
+    .article-actions {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    
+    .related-article-card {
+        transition: all 0.2s;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 100%;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .related-article-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .attachment-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        margin-bottom: 10px;
+        transition: all 0.2s;
+    }
+    
+    .attachment-item:hover {
+        background-color: #e9ecef;
+    }
+    
+    .attachment-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    
+    .toc-container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .toc-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    .toc-list li {
+        margin-bottom: 8px;
+    }
+    
+    .toc-list li a {
+        color: #495057;
+        text-decoration: none;
+    }
+    
+    .toc-list li a:hover {
+        color: #3498db;
+    }
+    
+    .toc-sublist {
+        list-style-type: none;
+        padding-left: 20px;
+        margin-top: 8px;
+    }
+    
+    .feedback-container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Add CSRF token for AJAX requests -->
+    {% csrf_token %}
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'core:technician_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'core:technician_knowledge_base' %}">Knowledge Base</a></li>
+                    {% if article.category %}
+                    <li class="breadcrumb-item"><a href="{% url 'core:technician_knowledge_base' %}?category={{ article.category.id }}">{{ article.category.name }}</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ article.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-warning" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Article Content -->
+    <div class="article-container">
+        <div class="article-header">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    {% if article.category %}
+                    <span class="badge bg-light text-dark">{{ article.category.name }}</span>
+                    {% endif %}
+                    <span class="badge {% if article.visibility == 'public' %}bg-success{% elif article.visibility == 'internal' %}bg-info{% else %}bg-secondary{% endif %}">
+                        {{ article.visibility|title }}
+                    </span>
+                    {% if article.is_featured %}
+                    <span class="badge bg-warning">Featured</span>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if can_edit %}
+                    <div class="btn-group">
+                        <a href="{% url 'core:technician_edit_article' article.id %}" class="btn btn-sm btn-outline-light">
+                            <i class="fas fa-edit me-1"></i> Edit
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-light dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deleteArticleModal">
+                                    <i class="fas fa-trash-alt text-danger me-1"></i> Delete
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <h1 class="mt-2 mb-4">{{ article.title }}</h1>
+            <p class="lead mb-3">{{ article.short_description }}</p>
+            
+            <div class="d-flex flex-wrap">
+                {% for tag in article.tags %}
+                <a href="{% url 'core:technician_knowledge_base' %}?tag={{ tag }}" class="article-tag text-decoration-none">{{ tag }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="article-metadata">
+                    <div class="article-metadata-item">
+                        <i class="fas fa-user"></i>
+                        <span>By {{ article.created_by.get_full_name|default:article.created_by.username }}</span>
+                    </div>
+                    <div class="article-metadata-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Created {{ article.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="article-metadata-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Updated {{ article.updated_at|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="article-metadata-item">
+                        <i class="fas fa-eye"></i>
+                        <span>{{ article.views|default:"0" }} views</span>
+                    </div>
+                </div>
+                
+                <!-- Table of Contents (for longer articles) -->
+                {% if article.content|length > 1000 %}
+                <div class="toc-container">
+                    <h5>Table of Contents</h5>
+                    <div id="tableOfContents">
+                        <div class="text-center py-2">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2">Generating table of contents...</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Article Content -->
+                <div class="article-content">
+                    {{ article.content|safe }}
+                </div>
+                
+                <!-- Article Attachments -->
+                {% if article.attachments.exists %}
+                <div class="mt-5">
+                    <h5 class="mb-3">Attachments</h5>
+                    <div class="attachments-list">
+                        {% for attachment in article.attachments.all %}
+                        <a href="{{ attachment.file.url }}" class="text-decoration-none" target="_blank">
+                            <div class="attachment-item">
+                                <div class="attachment-icon">
+                                    {% if attachment.is_image %}
+                                    <i class="fas fa-image text-primary fa-lg"></i>
+                                    {% elif attachment.file_extension == 'pdf' %}
+                                    <i class="fas fa-file-pdf text-danger fa-lg"></i>
+                                    {% elif attachment.file_extension == 'docx' or attachment.file_extension == 'doc' %}
+                                    <i class="fas fa-file-word text-primary fa-lg"></i>
+                                    {% elif attachment.file_extension == 'xlsx' or attachment.file_extension == 'xls' %}
+                                    <i class="fas fa-file-excel text-success fa-lg"></i>
+                                    {% elif attachment.file_extension == 'pptx' or attachment.file_extension == 'ppt' %}
+                                    <i class="fas fa-file-powerpoint text-warning fa-lg"></i>
+                                    {% elif attachment.file_extension == 'zip' or attachment.file_extension == 'rar' %}
+                                    <i class="fas fa-file-archive text-secondary fa-lg"></i>
+                                    {% else %}
+                                    <i class="fas fa-file text-secondary fa-lg"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div>{{ attachment.filename }}</div>
+                                    <small class="text-muted">{{ attachment.file.size|filesizeformat }}</small>
+                                </div>
+                                <div class="ms-auto">
+                                    <i class="fas fa-download text-muted"></i>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Article Actions -->
+                <div class="article-actions">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary me-2" id="printArticle">
+                                <i class="fas fa-print me-1"></i> Print
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary me-2" id="shareArticle" data-bs-toggle="modal" data-bs-target="#shareModal">
+                                <i class="fas fa-share-alt me-1"></i> Share
+                            </button>
+                        </div>
+                        <div>
+                            {% if can_edit %}
+                            <a href="{% url 'core:technician_edit_article' article.id %}" class="btn btn-primary">
+                                <i class="fas fa-edit me-1"></i> Edit Article
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Article Feedback -->
+                <div class="feedback-container">
+                    <h5 class="mb-3">Was this article helpful?</h5>
+                    <div class="d-flex">
+                        <button class="btn btn-outline-success me-2" id="feedbackYes">
+                            <i class="fas fa-thumbs-up me-1"></i> Yes
+                        </button>
+                        <button class="btn btn-outline-danger me-2" id="feedbackNo">
+                            <i class="fas fa-thumbs-down me-1"></i> No
+                        </button>
+                    </div>
+                    <div class="mt-3 d-none" id="feedbackForm">
+                        <textarea class="form-control" rows="3" placeholder="How can we improve this article?" id="feedbackText"></textarea>
+                        <button class="btn btn-primary mt-2" id="submitFeedback">Submit Feedback</button>
+                    </div>
+                    <div class="alert alert-success mt-3 d-none" id="feedbackThanks">
+                        Thank you for your feedback! We'll use it to improve our knowledge base.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Articles -->
+    {% if related_articles or similar_articles %}
+    <div class="container mt-5">
+        <div class="row">
+            {% if related_articles %}
+            <div class="col-lg-6 mb-4">
+                <h5 class="mb-3">Related Articles</h5>
+                {% for related in related_articles %}
+                <div class="card mb-3 related-article-card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <a href="{% url 'core:technician_article_detail' related.id %}" class="text-decoration-none">{{ related.title }}</a>
+                        </h6>
+                        <p class="card-text small text-muted">{{ related.short_description|truncatechars:100 }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if similar_articles %}
+            <div class="col-lg-6 mb-4">
+                <h5 class="mb-3">Similar Articles</h5>
+                {% for similar in similar_articles %}
+                <div class="card mb-3 related-article-card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <a href="{% url 'core:technician_article_detail' similar.id %}" class="text-decoration-none">{{ similar.title }}</a>
+                        </h6>
+                        <p class="card-text small text-muted">{{ similar.short_description|truncatechars:100 }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="shareLink" class="form-label">Article Link</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="shareLink" value="{{ request.build_absolute_uri }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="copyLinkBtn">Copy</button>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-center mt-4">
+                    <a href="mailto:?subject={{ article.title }}&body={{ request.build_absolute_uri }}" class="btn btn-outline-secondary mx-2">
+                        <i class="fas fa-envelope fa-lg"></i>
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ article.title }}" target="_blank" class="btn btn-outline-primary mx-2">
+                        <i class="fab fa-twitter fa-lg"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri }}&title={{ article.title }}" target="_blank" class="btn btn-outline-primary mx-2">
+                        <i class="fab fa-linkedin fa-lg"></i>
+                    </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline-primary mx-2">
+                        <i class="fab fa-facebook fa-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Article Modal -->
+<div class="modal fade" id="deleteArticleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the article "<strong>{{ article.title }}</strong>"?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'core:technician_delete_article' article.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Article</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Print article functionality
+        document.getElementById('printArticle').addEventListener('click', function() {
+            window.print();
+        });
+        
+        // Copy share link functionality
+        document.getElementById('copyLinkBtn').addEventListener('click', function() {
+            const linkInput = document.getElementById('shareLink');
+            linkInput.select();
+            document.execCommand('copy');
+            
+            // Change button text temporarily
+            const originalText = this.textContent;
+            this.textContent = 'Copied!';
+            setTimeout(() => {
+                this.textContent = originalText;
+            }, 2000);
+        });
+        
+        // Feedback functionality
+        document.getElementById('feedbackYes').addEventListener('click', function() {
+            handleFeedback('positive');
+        });
+        
+        document.getElementById('feedbackNo').addEventListener('click', function() {
+            handleFeedback('negative');
+        });
+        
+        document.getElementById('submitFeedback').addEventListener('click', function() {
+            submitFeedback();
+        });
+        
+        function handleFeedback(type) {
+            // Show the feedback form
+            document.getElementById('feedbackForm').classList.remove('d-none');
+            
+            // Style the buttons
+            if (type === 'positive') {
+                document.getElementById('feedbackYes').classList.remove('btn-outline-success');
+                document.getElementById('feedbackYes').classList.add('btn-success');
+                document.getElementById('feedbackNo').classList.remove('btn-danger');
+                document.getElementById('feedbackNo').classList.add('btn-outline-danger');
+            } else {
+                document.getElementById('feedbackNo').classList.remove('btn-outline-danger');
+                document.getElementById('feedbackNo').classList.add('btn-danger');
+                document.getElementById('feedbackYes').classList.remove('btn-success');
+                document.getElementById('feedbackYes').classList.add('btn-outline-success');
+            }
+        }
+        
+        function submitFeedback() {
+            const feedbackText = document.getElementById('feedbackText').value;
+            const isPositive = document.getElementById('feedbackYes').classList.contains('btn-success');
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const articleId = "{{ article.id }}";
+            
+            // Prepare the payload
+            const payload = {
+                article_id: articleId,
+                is_helpful: isPositive,
+                comment: feedbackText
+            };
+            
+            // Send feedback to server
+            fetch(`/technician/knowledge-base/article/${articleId}/feedback/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                console.log('Feedback submitted successfully:', data);
+                
+                // Show thank you message
+                document.getElementById('feedbackForm').classList.add('d-none');
+                document.getElementById('feedbackYes').classList.add('d-none');
+                document.getElementById('feedbackNo').classList.add('d-none');
+                document.getElementById('feedbackThanks').classList.remove('d-none');
+            })
+            .catch(function(error) {
+                console.error('Error submitting feedback:', error);
+                // Show error message
+                document.getElementById('feedbackForm').innerHTML = '<div class="alert alert-danger">Error submitting feedback. Please try again later.</div>';
+            });
+        }
+        
+        // Generate table of contents
+        if (document.getElementById('tableOfContents')) {
+            generateTableOfContents();
+        }
+        
+        function generateTableOfContents() {
+            const articleContent = document.querySelector('.article-content');
+            const headings = articleContent.querySelectorAll('h2, h3');
+            
+            if (headings.length === 0) {
+                document.getElementById('tableOfContents').innerHTML = '<p class="text-muted mb-0">No sections found in this article.</p>';
+                return;
+            }
+            
+            // Add IDs to headings if they don't have them
+            headings.forEach((heading, index) => {
+                if (!heading.id) {
+                    heading.id = 'section-' + index;
+                }
+            });
+            
+            // Create table of contents HTML
+            let tocHtml = '<ul class="toc-list mb-0">';
+            let currentLevel = 'h2';
+            let isSubListOpen = false;
+            
+            headings.forEach((heading) => {
+                const headingLevel = heading.tagName.toLowerCase();
+                const headingText = heading.textContent;
+                const headingId = heading.id;
+                
+                if (headingLevel === 'h2' && isSubListOpen) {
+                    tocHtml += '</ul></li>';
+                    isSubListOpen = false;
+                }
+                
+                if (headingLevel === 'h2') {
+                    tocHtml += `<li><a href="#${headingId}">${headingText}</a>`;
+                    currentLevel = 'h2';
+                } else if (headingLevel === 'h3' && currentLevel === 'h2') {
+                    tocHtml += '<ul class="toc-sublist">';
+                    tocHtml += `<li><a href="#${headingId}">${headingText}</a></li>`;
+                    isSubListOpen = true;
+                } else if (headingLevel === 'h3' && isSubListOpen) {
+                    tocHtml += `<li><a href="#${headingId}">${headingText}</a></li>`;
+                }
+                
+                if (headingLevel === 'h2' && !isSubListOpen) {
+                    tocHtml += '</li>';
+                }
+            });
+            
+            if (isSubListOpen) {
+                tocHtml += '</ul></li>';
+            }
+            
+            tocHtml += '</ul>';
+            
+            document.getElementById('tableOfContents').innerHTML = tocHtml;
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,213 @@
+/**
+ * Technician Dashboard Styles
+ */
+
+/* Main Dashboard Layout */
+.container-fluid {
+    padding-bottom: 2rem;
+}
+
+/* Stats Cards */
+.tech-stats-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.tech-stats-card:hover {
+    transform: translateY(-5px);
+}
+
+.tech-stats-card.primary {
+    background: linear-gradient(45deg, #4e73df 0%, #6f86d6 100%);
+    color: white;
+}
+
+.tech-stats-card.success {
+    background: linear-gradient(45deg, #1cc88a 0%, #38d39f 100%);
+    color: white;
+}
+
+.tech-stats-card.warning {
+    background: linear-gradient(45deg, #f6c23e 0%, #f8d35c 100%);
+    color: white;
+}
+
+.tech-stats-card.danger {
+    background: linear-gradient(45deg, #e74a3b 0%, #ef6f64 100%);
+    color: white;
+}
+
+.tech-stats-card.info {
+    background: linear-gradient(45deg, #36b9cc 0%, #4cc9d9 100%);
+    color: white;
+}
+
+/* Card Headers */
+.card-header-custom {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    font-weight: 600;
+}
+
+/* Ticket Priority Indicators */
+.ticket-priority-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.priority-high {
+    background-color: #e74a3b;
+}
+
+.priority-medium {
+    background-color: #f6c23e;
+}
+
+.priority-low {
+    background-color: #36b9cc;
+}
+
+/* Ticket Status Indicators */
+.ticket-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-new {
+    background-color: #e1f5fe;
+    color: #0288d1;
+}
+
+.status-in-progress {
+    background-color: #fff8e1;
+    color: #ffa000;
+}
+
+.status-resolved {
+    background-color: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-on-hold {
+    background-color: #f5f5f5;
+    color: #616161;
+}
+
+/* Performance Indicators */
+.performance-indicator {
+    width: 100%;
+    height: 5px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    margin-top: 5px;
+}
+
+.performance-indicator-bar {
+    height: 100%;
+    border-radius: 3px;
+}
+
+.excellent {
+    background-color: #1cc88a;
+}
+
+.good {
+    background-color: #36b9cc;
+}
+
+.average {
+    background-color: #f6c23e;
+}
+
+.below-average {
+    background-color: #e74a3b;
+}
+
+/* Table Styles */
+.table {
+    font-size: 0.9rem;
+}
+
+.table th {
+    font-weight: 600;
+    border-top: none;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Knowledge Base List Styles */
+.list-group-item-action:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Alert List Styles */
+.list-group-flush .list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+/* Icon Circle */
+.icon-circle {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .card {
+        background-color: #2b3035;
+        color: #e9ecef;
+    }
+    
+    .card-header-custom {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.125);
+    }
+    
+    .table {
+        color: #e9ecef;
+    }
+    
+    .table thead th {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .list-group-item {
+        background-color: #2b3035;
+        border-color: rgba(255, 255, 255, 0.125);
+        color: #e9ecef;
+    }
+    
+    .dropdown-menu {
+        background-color: #343a40;
+        color: #e9ecef;
+        border-color: rgba(255, 255, 255, 0.125);
+    }
+    
+    .dropdown-item {
+        color: #e9ecef;
+    }
+    
+    .dropdown-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .performance-indicator {
+        background-color: #495057;
+    }
+} 

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket Overdue</title>
+</head>
+<body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #dc3545;">⚠️ Ticket Overdue</h2>
+        <p>Hello {{ user.get_full_name|default:user.email }},</p>
+        <p>The following ticket has passed its due date and requires immediate attention:</p>
+        <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #f5c6cb;">
+            <p><strong>Ticket #:</strong> {{ ticket.id }}</p>
+            <p><strong>Title:</strong> {{ ticket.title }}</p>
+            <p><strong>Due Date:</strong> {{ ticket.due_date }}</p>
+            <p><strong>Status:</strong> {{ ticket.get_status_display }}</p>
+            {% if ticket.assigned_to %}
+            <p><strong>Assigned To:</strong> {{ ticket.assigned_to.get_full_name }}</p>
+            {% endif %}
+        </div>
+        <p>Please take immediate action to resolve this ticket.</p>
+        <p>Best regards,<br>Support System Team</p>
+    </div>
+</body>
+</html>

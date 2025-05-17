@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket Reminder</title>
+</head>
+<body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #ffc107;">⏰ Ticket Needs Attention</h2>
+        <p>Hello {{ user.get_full_name|default:user.email }},</p>
+        <p>The following ticket hasn't been updated in the last 48 hours:</p>
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #ffeeba;">
+            <p><strong>Ticket #:</strong> {{ ticket.id }}</p>
+            <p><strong>Title:</strong> {{ ticket.title }}</p>
+            <p><strong>Last Updated:</strong> {{ ticket.last_updated }}</p>
+            <p><strong>Status:</strong> {{ ticket.get_status_display }}</p>
+            {% if ticket.assigned_to %}
+            <p><strong>Assigned To:</strong> {{ ticket.assigned_to.get_full_name }}</p>
+            {% endif %}
+        </div>
+        <p>Please review the ticket and update its status or add a comment if needed.</p>
+        <p>Best regards,<br>Support System Team</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,724 @@
+{% extends 'technician/base.html' %}
+{% load static %}
+
+{% block title %}Ticket #{{ ticket.id }} - {{ ticket.subject }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ticket-detail-card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+    .status-badge, .priority-badge {
+        padding: 0.35em 0.65em;
+        border-radius: 0.25rem;
+        font-size: 0.75em;
+        font-weight: 700;
+    }
+    .status-new { background-color: #e1f5fe; color: #0288d1; }
+    .status-in-progress { background-color: #fff8e1; color: #ffa000; }
+    .status-on-hold { background-color: #f3e5f5; color: #7b1fa2; }
+    .status-resolved { background-color: #e8f5e9; color: #2e7d32; }
+    .status-closed { background-color: #f5f5f5; color: #616161; }
+
+    .priority-low { background-color: #e8f5e9; color: #2e7d32; }
+    .priority-medium { background-color: #fff8e1; color: #ffa000; }
+    .priority-high { background-color: #ffebee; color: #c62828; }
+    .priority-urgent { background-color: #b71c1c; color: white; }
+
+    .ticket-meta {
+        padding: 1rem;
+        background-color: #f8f9fc;
+        border-radius: 0.5rem;
+    }
+    .ticket-meta-item {
+        margin-bottom: 0.75rem;
+    }
+    .ticket-meta-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #4e73df;
+    }
+    .ticket-meta-value {
+        font-size: 0.9rem;
+    }
+    .ticket-description {
+        white-space: pre-line;
+        padding: 1.5rem;
+        background-color: #f8f9fc;
+        border-radius: 0.5rem;
+        font-size: 0.95rem;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    .timeline::before {
+        content: "";
+        position: absolute;
+        left: 0.6rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: #e3e6f0;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -2rem;
+        top: 0.25rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #4e73df;
+    }
+    .timeline-item.status-change::before {
+        background-color: #f6c23e;
+    }
+    .timeline-item.assignment::before {
+        background-color: #36b9cc;
+    }
+    .timeline-item.comment::before {
+        background-color: #1cc88a;
+    }
+    .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    .timeline-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .timeline-timestamp {
+        font-size: 0.8rem;
+        color: #858796;
+    }
+    .timeline-content {
+        background-color: #f8f9fc;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+    }
+    .comment-author {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+    .comment-author-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+        background-color: #4e73df;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    .attachment-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        background-color: #f8f9fc;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    .attachment-item:hover {
+        background-color: #eaecf4;
+    }
+    .attachment-icon {
+        margin-right: 0.75rem;
+        color: #4e73df;
+        font-size: 1.2rem;
+    }
+    .attachment-name {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .attachment-meta {
+        font-size: 0.8rem;
+        color: #858796;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+    }
+    .attachment-download {
+        margin-left: 0.75rem;
+        color: #4e73df;
+    }
+    .quick-actions .btn {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h1 class="h3 mb-0 text-gray-800">
+            <a href="{% url 'core:technician_tickets' %}" class="text-decoration-none me-2">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            Ticket #{{ ticket.id }} - {{ ticket.subject }}
+        </h1>
+        <div class="d-flex">
+            <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#addCommentModal">
+                <i class="fas fa-comment me-1"></i> Add Comment
+            </button>
+            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                <i class="fas fa-sync-alt me-1"></i> Update Status
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Ticket Information -->
+    <div class="col-lg-4">
+        <!-- Ticket Status Card -->
+        <div class="card ticket-detail-card">
+            <div class="card-header bg-light py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Ticket Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <span class="status-badge status-{{ ticket.status|slugify }} d-inline-block mb-2 px-3 py-2">
+                        {{ ticket.get_status_display }}
+                    </span>
+                    <span class="priority-badge priority-{{ ticket.priority|lower }} d-inline-block mb-2 px-3 py-2 ms-2">
+                        {{ ticket.get_priority_display }} Priority
+                    </span>
+                </div>
+                
+                <div class="ticket-meta">
+                    <div class="ticket-meta-item">
+                        <div class="ticket-meta-label">Created</div>
+                        <div class="ticket-meta-value">{{ ticket.created_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                    <div class="ticket-meta-item">
+                        <div class="ticket-meta-label">Last Updated</div>
+                        <div class="ticket-meta-value">{{ ticket.updated_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                    <div class="ticket-meta-item">
+                        <div class="ticket-meta-label">Category</div>
+                        <div class="ticket-meta-value">{{ ticket.category.name }}</div>
+                    </div>
+                    {% if ticket.due_date %}
+                    <div class="ticket-meta-item">
+                        <div class="ticket-meta-label">Due Date</div>
+                        <div class="ticket-meta-value">
+                            {{ ticket.due_date|date:"M d, Y" }}
+                            {% if ticket.is_overdue %}
+                            <span class="badge bg-danger ms-2">Overdue</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="ticket-meta-item">
+                        <div class="ticket-meta-label">Assigned To</div>
+                        <div class="ticket-meta-value">
+                            {% if ticket.assigned_to %}
+                                {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                            {% else %}
+                                <span class="text-muted">Unassigned</span>
+                                <a href="#" class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="modal" data-bs-target="#assignTicketModal">
+                                    Assign
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customer Information Card -->
+        <div class="card ticket-detail-card">
+            <div class="card-header bg-light py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Customer Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    {% if ticket.customer.profile.avatar %}
+                        <img src="{{ ticket.customer.profile.avatar.url }}" alt="Avatar" class="rounded-circle me-3" style="width: 48px; height: 48px;">
+                    {% else %}
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                            {{ ticket.customer.get_initials }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h6 class="mb-0">{{ ticket.customer.get_full_name|default:ticket.customer.username }}</h6>
+                        <a href="mailto:{{ ticket.customer.email }}" class="text-muted small">
+                            <i class="fas fa-envelope me-1"></i> {{ ticket.customer.email }}
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="ticket-meta">
+                    {% if ticket.customer.profile.phone %}
+                    <div class="ticket-meta-item">
+                        <div class="ticket-meta-label">Phone</div>
+                        <div class="ticket-meta-value">
+                            <a href="tel:{{ ticket.customer.profile.phone }}">{{ ticket.customer.profile.phone }}</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="ticket-meta-item">
+                        <div class="ticket-meta-label">Member Since</div>
+                        <div class="ticket-meta-value">{{ ticket.customer.date_joined|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="ticket-meta-item">
+                        <div class="ticket-meta-label">Total Tickets</div>
+                        <div class="ticket-meta-value">{{ ticket.customer.tickets.count }}</div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'core:customer_detail' ticket.customer.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-user me-1"></i> View Customer Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions Card -->
+        <div class="card ticket-detail-card">
+            <div class="card-header bg-light py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="quick-actions">
+                    {% if ticket.status != 'resolved' %}
+                    <a href="{% url 'core:technician_resolve_ticket' ticket.id %}" class="btn btn-success">
+                        <i class="fas fa-check-circle me-1"></i> Mark as Resolved
+                    </a>
+                    {% endif %}
+                    
+                    {% if ticket.status != 'closed' %}
+                    <a href="{% url 'core:technician_close_ticket' ticket.id %}" class="btn btn-secondary" 
+                       onclick="return confirm('Are you sure you want to close this ticket?');">
+                        <i class="fas fa-times-circle me-1"></i> Close Ticket
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'core:technician_transfer_ticket' ticket.id %}" class="btn btn-info">
+                        <i class="fas fa-exchange-alt me-1"></i> Transfer Ticket
+                    </a>
+                    
+                    <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#escalateTicketModal">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Escalate
+                    </a>
+                    
+                    <a href="{% url 'core:technician_print_ticket' ticket.id %}" class="btn btn-light" target="_blank">
+                        <i class="fas fa-print me-1"></i> Print
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Ticket Details, Comments, etc. -->
+    <div class="col-lg-8">
+        <!-- Ticket Description Card -->
+        <div class="card ticket-detail-card">
+            <div class="card-header bg-light py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Ticket Description</h6>
+            </div>
+            <div class="card-body">
+                <div class="ticket-description">{{ ticket.description }}</div>
+            </div>
+        </div>
+        
+        <!-- Attachments Card -->
+        {% if ticket.attachments.exists %}
+        <div class="card ticket-detail-card">
+            <div class="card-header bg-light py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Attachments</h6>
+            </div>
+            <div class="card-body">
+                {% for attachment in ticket.attachments.all %}
+                <div class="attachment-item">
+                    <div class="attachment-icon">
+                        {% if attachment.file_type == 'image' %}
+                            <i class="fas fa-file-image"></i>
+                        {% elif attachment.file_type == 'pdf' %}
+                            <i class="fas fa-file-pdf"></i>
+                        {% elif attachment.file_type == 'doc' %}
+                            <i class="fas fa-file-word"></i>
+                        {% elif attachment.file_type == 'excel' %}
+                            <i class="fas fa-file-excel"></i>
+                        {% else %}
+                            <i class="fas fa-file"></i>
+                        {% endif %}
+                    </div>
+                    <div class="attachment-info">
+                        <div class="attachment-name">{{ attachment.file_name }}</div>
+                    </div>
+                    <div class="attachment-meta">
+                        <span>{{ attachment.file_size_display }}</span>
+                        <a href="{{ attachment.file.url }}" class="attachment-download" download>
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Comments and Activity Card -->
+        <div class="card ticket-detail-card">
+            <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Comments & Activity</h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCommentModal">
+                    <i class="fas fa-plus me-1"></i> Add Comment
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for activity in activities %}
+                        {% if activity.type == 'comment' %}
+                            <div class="timeline-item comment">
+                                <div class="timeline-header">
+                                    <div class="comment-author">
+                                        <div class="comment-author-avatar">
+                                            {% if activity.user.get_initials %}
+                                                {{ activity.user.get_initials }}
+                                            {% else %}
+                                                <i class="fas fa-user"></i>
+                                            {% endif %}
+                                        </div>
+                                        {{ activity.user.get_full_name|default:activity.user.username }}
+                                        {% if activity.is_internal %}
+                                            <span class="badge bg-secondary ms-2">Internal</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="timeline-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
+                                </div>
+                                <div class="timeline-content">
+                                    {{ activity.content|linebreaks }}
+                                    
+                                    {% if activity.attachments.exists %}
+                                        <div class="mt-3">
+                                            <div class="fw-bold mb-2">Attachments:</div>
+                                            {% for attachment in activity.attachments.all %}
+                                                <div class="attachment-item">
+                                                    <div class="attachment-icon">
+                                                        <i class="fas fa-paperclip"></i>
+                                                    </div>
+                                                    <div class="attachment-name">{{ attachment.file_name }}</div>
+                                                    <div class="attachment-meta">
+                                                        <span>{{ attachment.file_size_display }}</span>
+                                                        <a href="{{ attachment.file.url }}" class="attachment-download" download>
+                                                            <i class="fas fa-download"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% elif activity.type == 'status_change' %}
+                            <div class="timeline-item status-change">
+                                <div class="timeline-header">
+                                    <div class="timeline-title">Status Changed</div>
+                                    <div class="timeline-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
+                                </div>
+                                <div class="timeline-content">
+                                    <p>
+                                        {{ activity.user.get_full_name|default:activity.user.username }} changed status from 
+                                        <span class="status-badge status-{{ activity.from_status|slugify }}">{{ activity.from_status_display }}</span> to 
+                                        <span class="status-badge status-{{ activity.to_status|slugify }}">{{ activity.to_status_display }}</span>
+                                    </p>
+                                    {% if activity.note %}
+                                        <div class="mt-2">
+                                            <strong>Note:</strong> {{ activity.note }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% elif activity.type == 'assignment' %}
+                            <div class="timeline-item assignment">
+                                <div class="timeline-header">
+                                    <div class="timeline-title">Assignment Changed</div>
+                                    <div class="timeline-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
+                                </div>
+                                <div class="timeline-content">
+                                    <p>
+                                        {{ activity.user.get_full_name|default:activity.user.username }} 
+                                        {% if activity.from_user %}
+                                            reassigned ticket from {{ activity.from_user.get_full_name|default:activity.from_user.username }} to 
+                                        {% else %}
+                                            assigned ticket to 
+                                        {% endif %}
+                                        {{ activity.to_user.get_full_name|default:activity.to_user.username }}
+                                    </p>
+                                    {% if activity.note %}
+                                        <div class="mt-2">
+                                            <strong>Note:</strong> {{ activity.note }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="timeline-item">
+                                <div class="timeline-header">
+                                    <div class="timeline-title">{{ activity.title }}</div>
+                                    <div class="timeline-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
+                                </div>
+                                <div class="timeline-content">
+                                    <p>{{ activity.description }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% empty %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-comments fa-2x mb-3"></i>
+                            <p>No comments or activity yet</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Comment Modal -->
+<div class="modal fade" id="addCommentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Comment to Ticket #{{ ticket.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCommentForm" method="post" action="{% url 'core:technician_add_comment' ticket.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="commentContent" class="form-label">Comment</label>
+                        <textarea class="form-control" id="commentContent" name="content" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="internalComment" name="is_internal">
+                        <label class="form-check-label" for="internalComment">Internal comment (not visible to customer)</label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="commentAttachments" class="form-label">Attachments</label>
+                        <input class="form-control" type="file" id="commentAttachments" name="attachments" multiple>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('addCommentForm').submit();">Add Comment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Ticket Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStatusForm" method="post" action="{% url 'core:technician_update_ticket' ticket.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="newStatus" class="form-label">Status</label>
+                        <select class="form-select" id="newStatus" name="status" required>
+                            <option value="new" {% if ticket.status == 'new' %}selected{% endif %}>New</option>
+                            <option value="in-progress" {% if ticket.status == 'in-progress' %}selected{% endif %}>In Progress</option>
+                            <option value="on-hold" {% if ticket.status == 'on-hold' %}selected{% endif %}>On Hold</option>
+                            <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statusNote" class="form-label">Note</label>
+                        <textarea class="form-control" id="statusNote" name="note" rows="3" placeholder="Add a note about this status change"></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="notifyCustomer" name="notify_customer" checked>
+                        <label class="form-check-label" for="notifyCustomer">Notify customer of status change</label>
+                    </div>
+                    <input type="hidden" name="action" value="update_status">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('updateStatusForm').submit();">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Ticket Modal -->
+<div class="modal fade" id="assignTicketModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assign Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="assignTicketForm" method="post" action="{% url 'core:technician_assign_ticket' ticket.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="assignedTo" class="form-label">Assign To</label>
+                        <select class="form-select" id="assignedTo" name="assigned_to" required>
+                            <option value="" selected disabled>Select technician</option>
+                            {% for technician in technicians %}
+                            <option value="{{ technician.id }}" {% if ticket.assigned_to == technician %}selected{% endif %}>
+                                {{ technician.get_full_name|default:technician.username }}
+                                {% if technician.profile.is_available %}
+                                    (Available)
+                                {% else %}
+                                    (Unavailable)
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentNote" class="form-label">Note</label>
+                        <textarea class="form-control" id="assignmentNote" name="note" rows="3" placeholder="Add optional note"></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="notifyTechnician" name="notify_technician" checked>
+                        <label class="form-check-label" for="notifyTechnician">Notify assigned technician</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('assignTicketForm').submit();">Assign Ticket</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Escalate Ticket Modal -->
+<div class="modal fade" id="escalateTicketModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Escalate Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="escalateTicketForm" method="post" action="{% url 'core:technician_escalate_ticket' ticket.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="escalationReason" class="form-label">Reason for Escalation</label>
+                        <select class="form-select" id="escalationReason" name="reason" required>
+                            <option value="" selected disabled>Select reason</option>
+                            <option value="technical_complexity">Technical Complexity</option>
+                            <option value="high_priority">High Priority Issue</option>
+                            <option value="customer_request">Customer Request</option>
+                            <option value="sla_breach">SLA Breach</option>
+                            <option value="special_handling">Requires Special Handling</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="escalationLevel" class="form-label">Escalation Level</label>
+                        <select class="form-select" id="escalationLevel" name="level" required>
+                            <option value="level_2" selected>Level 2 Support</option>
+                            <option value="level_3">Level 3 Support</option>
+                            <option value="manager">Manager</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="escalationNote" class="form-label">Details</label>
+                        <textarea class="form-control" id="escalationNote" name="note" rows="3" placeholder="Provide detailed information about the escalation" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="document.getElementById('escalateTicketForm').submit();">Escalate Ticket</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show appropriate field when "Other" is selected for escalation
+        const escalationReason = document.getElementById('escalationReason');
+        if (escalationReason) {
+            escalationReason.addEventListener('change', function() {
+                const otherReasonDiv = document.getElementById('otherReasonDiv');
+                if (this.value === 'other' && otherReasonDiv) {
+                    otherReasonDiv.style.display = 'block';
+                } else if (otherReasonDiv) {
+                    otherReasonDiv.style.display = 'none';
+                }
+            });
+        }
+        
+        // Confirm before resolving ticket
+        const resolveButton = document.querySelector(`a[href^="{% url 'core:technician_resolve_ticket' 0 %}".replace('0', '{{ ticket.id }}')]`);
+        if (resolveButton) {
+            resolveButton.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to mark this ticket as resolved?')) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        // Preview uploaded attachments
+        const fileInput = document.getElementById('commentAttachments');
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                const filePreview = document.getElementById('filePreview');
+                if (!filePreview) return;
+                
+                filePreview.innerHTML = '';
+                if (this.files.length > 0) {
+                    filePreview.style.display = 'block';
+                    for (let i = 0; i < this.files.length; i++) {
+                        const file = this.files[i];
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        
+                        let icon = 'fas fa-file';
+                        if (file.type.startsWith('image/')) icon = 'fas fa-file-image';
+                        else if (file.type === 'application/pdf') icon = 'fas fa-file-pdf';
+                        else if (file.type.includes('word')) icon = 'fas fa-file-word';
+                        else if (file.type.includes('excel') || file.type.includes('sheet')) icon = 'fas fa-file-excel';
+                        
+                        fileItem.innerHTML = `
+                            <i class="${icon}"></i>
+                            <span>${file.name}</span>
+                            <small>${(file.size / 1024).toFixed(2)} KB</small>
+                        `;
+                        
+                        filePreview.appendChild(fileItem);
+                    }
+                } else {
+                    filePreview.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

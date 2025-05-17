@@ -1,0 +1,602 @@
+{% extends 'technician/base.html' %}
+
+{% block title %}Edit Article - Knowledge Base{% endblock %}
+
+{% block extra_css %}
+<style>
+    .article-form-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+    }
+    
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+    }
+    
+    .note-editor {
+        border-radius: 0.25rem;
+    }
+    
+    .tag-input {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        min-height: 38px;
+    }
+    
+    .tag-input:focus-within {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+    }
+    
+    .tag-item {
+        display: inline-flex;
+        align-items: center;
+        background-color: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+    }
+    
+    .tag-remove {
+        margin-left: 0.25rem;
+        cursor: pointer;
+        color: #6c757d;
+    }
+    
+    .tag-remove:hover {
+        color: #dc3545;
+    }
+    
+    .tag-input-field {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 0;
+        min-width: 100px;
+    }
+    
+    .ck-editor__editable {
+        min-height: 300px;
+    }
+    
+    .article-history-item {
+        border-left: 3px solid transparent;
+        transition: all 0.2s;
+    }
+    
+    .article-history-item:hover {
+        border-left-color: #3498db;
+        background-color: #f8f9fa;
+    }
+    
+    .article-history-item.current {
+        border-left-color: #2ecc71;
+    }
+    
+    .attachment-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .attachment-item {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        background-color: #f8f9fa;
+    }
+    
+    .attachment-item:hover {
+        background-color: #e9ecef;
+    }
+    
+    .attachment-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    
+    .attachment-remove {
+        margin-left: auto;
+        color: #6c757d;
+        cursor: pointer;
+    }
+    
+    .attachment-remove:hover {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card article-form-card">
+                <div class="card-header py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Edit Knowledge Base Article</h5>
+                        <div>
+                            <a href="{% url 'core:technician_article_detail' article.id %}" class="btn btn-light btn-sm me-2">
+                                <i class="fas fa-eye me-1"></i> View Article
+                            </a>
+                            <a href="{% url 'core:technician_knowledge_base' %}" class="btn btn-light btn-sm">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Knowledge Base
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="articleForm" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="articleTitle" class="form-label">Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="articleTitle" name="title" value="{{ article.title|default:'Article Title' }}" required>
+                            <div class="form-text">Create a clear, descriptive title (50-60 characters recommended)</div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="" disabled>Select category</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}" {% if article.category == category.name %}selected{% endif %}>{{ category.name }}</option>
+                                    {% endfor %}
+                                    <option value="new">+ Create New Category</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="visibility" class="form-label">Visibility <span class="text-danger">*</span></label>
+                                <select class="form-select" id="visibility" name="visibility" required>
+                                    <option value="public" {% if article.visibility == 'public' %}selected{% endif %}>Public (Visible to all users)</option>
+                                    <option value="internal" {% if article.visibility == 'internal' %}selected{% endif %}>Internal (Staff only)</option>
+                                    <option value="private" {% if article.visibility == 'private' %}selected{% endif %}>Private (Selected users only)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="newCategoryField" class="mb-3 d-none">
+                            <label for="newCategory" class="form-label">New Category Name</label>
+                            <input type="text" class="form-control" id="newCategory" name="new_category">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="shortDescription" class="form-label">Short Description <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="shortDescription" name="short_description" rows="2" maxlength="160" required>{{ article.short_description|default:"A brief description of the article." }}</textarea>
+                            <div class="form-text">Brief summary of the article (max 160 characters)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Content <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="articleContent" name="content" rows="10" required>{{ article.content|default:"Article content goes here." }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Tags</label>
+                            <div class="tag-input" id="tagInputContainer">
+                                {% if article.tags %}
+                                    {% for tag in article.tags %}
+                                        <div class="tag-item">
+                                            {{ tag }}
+                                            <span class="tag-remove" data-tag="{{ tag }}">&times;</span>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                                <input type="text" class="tag-input-field" id="tagInput" placeholder="Add tags...">
+                            </div>
+                            <input type="hidden" id="tagsData" name="tags" value="{{ article.tags_json|default:'[]' }}">
+                            <div class="form-text">Press Enter or comma to add a tag</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Current Attachments</label>
+                            <div class="attachment-list">
+                                {% if article.attachments %}
+                                    {% for attachment in article.attachments %}
+                                        <div class="attachment-item">
+                                            <div class="attachment-icon">
+                                                {% if attachment.file_type == 'image' %}
+                                                    <i class="fas fa-image text-primary"></i>
+                                                {% elif attachment.file_type == 'pdf' %}
+                                                    <i class="fas fa-file-pdf text-danger"></i>
+                                                {% elif attachment.file_type == 'doc' %}
+                                                    <i class="fas fa-file-word text-primary"></i>
+                                                {% else %}
+                                                    <i class="fas fa-file text-secondary"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <div>{{ attachment.name }}</div>
+                                                <small class="text-muted">{{ attachment.size }}</small>
+                                            </div>
+                                            <div class="attachment-remove" data-attachment-id="{{ attachment.id }}">
+                                                <i class="fas fa-times"></i>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted mb-0">No attachments have been added to this article.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="articleAttachments" class="form-label">Add Attachments</label>
+                            <input class="form-control" type="file" id="articleAttachments" name="attachments" multiple>
+                            <div class="form-text">Upload images, PDFs or other supporting documents (max 5 files, 10MB each)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label d-block">Related Articles</label>
+                            <select class="form-select" id="relatedArticles" name="related_articles" multiple>
+                                {% for related in all_articles %}
+                                    <option value="{{ related.id }}" {% if related in article.related_articles %}selected{% endif %}>{{ related.title }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select articles that are related to this one</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="featuredArticle" name="is_featured" {% if article.is_featured %}checked{% endif %}>
+                            <label class="form-check-label" for="featuredArticle">Feature this article</label>
+                            <div class="form-text">Featured articles appear prominently in the knowledge base</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="createRevision" name="create_revision" checked>
+                            <label class="form-check-label" for="createRevision">Create a new revision</label>
+                            <div class="form-text">If checked, this edit will create a new revision in the article history</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary" id="saveAsDraft">Save as Draft</button>
+                            <div>
+                                <button type="button" class="btn btn-outline-primary me-2" id="previewArticle">Preview</button>
+                                <button type="submit" class="btn btn-primary">Update Article</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Article History -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Article History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="list-group-item article-history-item current">
+                            <div class="d-flex justify-content-between align-items-top mb-1">
+                                <h6 class="mb-0">Current Version</h6>
+                                <span class="badge bg-primary">Latest</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted small">Updated by {{ article.updated_by|default:"Admin User" }} on {{ article.updated_at|date:"M d, Y H:i"|default:"Jan 1, 2023" }}</div>
+                                <div>
+                                    <span class="badge bg-secondary">Current</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if article.history %}
+                            {% for revision in article.history %}
+                                <div class="list-group-item article-history-item">
+                                    <div class="d-flex justify-content-between align-items-top mb-1">
+                                        <h6 class="mb-0">Revision #{{ revision.number }}</h6>
+                                        <span class="badge bg-secondary">{{ revision.status|title }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="text-muted small">Updated by {{ revision.user }} on {{ revision.date|date:"M d, Y H:i" }}</div>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-primary view-revision-btn" data-revision-id="{{ revision.id }}">View</button>
+                                            <button class="btn btn-sm btn-outline-secondary restore-revision-btn" data-revision-id="{{ revision.id }}">Restore</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted">No revision history available for this article.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Article Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="preview-title h4 mb-3" id="previewTitle"></div>
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <span class="badge bg-primary" id="previewCategory"></span>
+                    <span class="badge bg-secondary" id="previewVisibility"></span>
+                </div>
+                <div class="preview-description mb-4 text-muted fst-italic" id="previewDescription"></div>
+                <div class="preview-content mb-4" id="previewContent"></div>
+                <div class="preview-tags mb-3">
+                    <strong>Tags: </strong>
+                    <div class="d-flex flex-wrap gap-1 mt-1" id="previewTags"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revision Preview Modal -->
+<div class="modal fade" id="revisionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Revision Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="revisionContent">
+                    <!-- Revision content will be loaded here -->
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading revision...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="restoreRevisionBtn">Restore This Revision</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.ckeditor.com/ckeditor5/34.0.0/classic/ckeditor.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let editor;
+        
+        // Initialize rich text editor
+        ClassicEditor
+            .create(document.querySelector('#articleContent'))
+            .then(newEditor => {
+                editor = newEditor;
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        
+        // Handle new category field
+        const categorySelect = document.getElementById('category');
+        const newCategoryField = document.getElementById('newCategoryField');
+        
+        categorySelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                newCategoryField.classList.remove('d-none');
+                document.getElementById('newCategory').setAttribute('required', 'required');
+            } else {
+                newCategoryField.classList.add('d-none');
+                document.getElementById('newCategory').removeAttribute('required');
+            }
+        });
+        
+        // Tags handling
+        const tagInput = document.getElementById('tagInput');
+        const tagContainer = document.getElementById('tagInputContainer');
+        const tagsDataInput = document.getElementById('tagsData');
+        let tags = [];
+        
+        // Initialize tags from existing data
+        try {
+            tags = JSON.parse(tagsDataInput.value || '[]');
+        } catch (e) {
+            console.error('Error parsing tags data:', e);
+            tags = [];
+        }
+        
+        function updateTagsData() {
+            tagsDataInput.value = JSON.stringify(tags);
+        }
+        
+        function addTag(tagName) {
+            const trimmedTag = tagName.trim();
+            if (trimmedTag === '' || tags.includes(trimmedTag)) return;
+            
+            tags.push(trimmedTag);
+            
+            const tagElement = document.createElement('div');
+            tagElement.className = 'tag-item';
+            tagElement.innerHTML = `
+                ${trimmedTag}
+                <span class="tag-remove" data-tag="${trimmedTag}">&times;</span>
+            `;
+            
+            tagContainer.insertBefore(tagElement, tagInput);
+            tagInput.value = '';
+            updateTagsData();
+        }
+        
+        tagInput.addEventListener('keydown', function(e) {
+            if ((e.key === 'Enter' || e.key === ',') && this.value.trim() !== '') {
+                e.preventDefault();
+                addTag(this.value);
+            }
+        });
+        
+        // Remove tag when X is clicked
+        tagContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('tag-remove')) {
+                const tagToRemove = e.target.getAttribute('data-tag');
+                tags = tags.filter(tag => tag !== tagToRemove);
+                e.target.parentElement.remove();
+                updateTagsData();
+            }
+        });
+        
+        // Remove attachment
+        document.querySelectorAll('.attachment-remove').forEach(button => {
+            button.addEventListener('click', function() {
+                const attachmentId = this.getAttribute('data-attachment-id');
+                const attachmentItem = this.closest('.attachment-item');
+                
+                // Add a hidden input to mark this attachment for deletion
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'delete_attachments';
+                hiddenInput.value = attachmentId;
+                document.getElementById('articleForm').appendChild(hiddenInput);
+                
+                // Visually remove the attachment
+                attachmentItem.style.opacity = '0.5';
+                attachmentItem.style.textDecoration = 'line-through';
+                button.style.visibility = 'hidden';
+            });
+        });
+        
+        // Handle preview
+        document.getElementById('previewArticle').addEventListener('click', function() {
+            // Get values from form
+            const title = document.getElementById('articleTitle').value;
+            const categorySelect = document.getElementById('category');
+            const categoryText = categorySelect.options[categorySelect.selectedIndex]?.text || '';
+            const visibilitySelect = document.getElementById('visibility');
+            const visibilityText = visibilitySelect.options[visibilitySelect.selectedIndex]?.text || '';
+            const description = document.getElementById('shortDescription').value;
+            const content = editor.getData();
+            
+            // Update preview modal
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('previewCategory').textContent = categoryText;
+            document.getElementById('previewVisibility').textContent = visibilityText;
+            document.getElementById('previewDescription').textContent = description;
+            document.getElementById('previewContent').innerHTML = content;
+            
+            // Update tags in preview
+            const previewTags = document.getElementById('previewTags');
+            previewTags.innerHTML = '';
+            tags.forEach(tag => {
+                const tagBadge = document.createElement('span');
+                tagBadge.className = 'badge bg-light text-dark';
+                tagBadge.textContent = tag;
+                previewTags.appendChild(tagBadge);
+            });
+            
+            // Show the modal
+            const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+            previewModal.show();
+        });
+        
+        // Save as draft functionality
+        document.getElementById('saveAsDraft').addEventListener('click', function() {
+            // Add draft status to form
+            const statusInput = document.createElement('input');
+            statusInput.type = 'hidden';
+            statusInput.name = 'status';
+            statusInput.value = 'draft';
+            document.getElementById('articleForm').appendChild(statusInput);
+            
+            // Submit the form
+            document.getElementById('articleForm').submit();
+        });
+        
+        // View revision
+        document.querySelectorAll('.view-revision-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const revisionId = this.getAttribute('data-revision-id');
+                const revisionModal = new bootstrap.Modal(document.getElementById('revisionModal'));
+                
+                // In a real app, you would fetch the revision data from the server
+                // For demo purposes, we'll just simulate a loading delay
+                setTimeout(() => {
+                    document.getElementById('revisionContent').innerHTML = `
+                        <h4>Revision #${revisionId}</h4>
+                        <div class="alert alert-info">
+                            <p>In a real application, this would display the content of revision #${revisionId}.</p>
+                            <p>The backend would load the stored revision data from the database.</p>
+                        </div>
+                        <div class="mt-3">
+                            <h5>Differences from current version:</h5>
+                            <div class="diff-viewer border p-3 bg-light">
+                                <p class="text-success">+ Added content would be shown in green</p>
+                                <p class="text-danger">- Removed content would be shown in red</p>
+                                <p>Unchanged content would be shown normally</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Set the revision ID on the restore button
+                    document.getElementById('restoreRevisionBtn').setAttribute('data-revision-id', revisionId);
+                }, 1000);
+                
+                revisionModal.show();
+            });
+        });
+        
+        // Restore revision
+        document.querySelectorAll('.restore-revision-btn, #restoreRevisionBtn').forEach(button => {
+            button.addEventListener('click', function() {
+                const revisionId = this.getAttribute('data-revision-id');
+                
+                // In a real app, you would send a request to restore this revision
+                if (confirm(`Are you sure you want to restore revision #${revisionId}? This will replace the current content.`)) {
+                    alert(`In a real application, revision #${revisionId} would be restored.`);
+                    
+                    // Close the modal if open
+                    const revisionModal = bootstrap.Modal.getInstance(document.getElementById('revisionModal'));
+                    if (revisionModal) {
+                        revisionModal.hide();
+                    }
+                }
+            });
+        });
+        
+        // Submit form (published status)
+        document.getElementById('articleForm').addEventListener('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+            } else {
+                // Add published status to form if not already set to draft
+                if (!this.querySelector('input[name="status"]')) {
+                    const statusInput = document.createElement('input');
+                    statusInput.type = 'hidden';
+                    statusInput.name = 'status';
+                    statusInput.value = 'published';
+                    this.appendChild(statusInput);
+                }
+            }
+            
+            this.classList.add('was-validated');
+        });
+    });
+</script>
+{% endblock %} 

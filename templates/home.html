@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Support System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero py-6">
+    <div class="container py-5">
+        <div class="row align-items-center hero-content">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">24/7 Technical Support at Your Fingertips</h1>
+                <p class="lead mb-4">Get instant access to expert technical support for all your needs. Our team of professionals is ready to help you solve any technical challenge.</p>
+                <div class="d-grid gap-3 d-md-flex justify-content-md-start">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'core:dashboard' %}" class="btn btn-dark btn-lg px-5 py-3 rounded-pill">Dashboard</a>
+                        <a href="{% url 'core:tickets' %}" class="btn btn-outline-dark btn-lg px-5 py-3 rounded-pill">My Tickets</a>
+                    {% else %}
+                        <a href="{% url 'core:register' %}" class="btn btn-dark btn-lg px-5 py-3 rounded-pill">Get Started</a>
+                        <a href="{% url 'core:service_list' %}" class="btn btn-outline-dark btn-lg px-5 py-3 rounded-pill">Our Services</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="{% static 'img/hero-image.jpg' %}" alt="Support illustration" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-light">
+    <div class="container py-4">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="stat-card card h-100 shadow-sm p-4">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                        </div>
+                        <h3 class="card-title">{{ total_customers }}+</h3>
+                        <p class="card-text">Happy Customers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card card h-100 shadow-sm p-4">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-tools fa-3x text-primary mb-3"></i>
+                        </div>
+                        <h3 class="card-title">{{ total_technicians }}+</h3>
+                        <p class="card-text">Expert Technicians</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card card h-100 shadow-sm p-4">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-check-circle fa-3x text-primary mb-3"></i>
+                        </div>
+                        <h3 class="card-title">{{ total_tickets_resolved }}+</h3>
+                        <p class="card-text">Issues Resolved</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Services -->
+<section class="py-5">
+    <div class="container py-4">
+        <h2 class="text-center mb-5">Our Services</h2>
+        <div class="row g-4">
+            {% for service in featured_services %}
+            <div class="col-md-4">
+                <div class="service-card card h-100 shadow-sm">
+                    {% if service.image %}
+                    <img src="{{ service.image.url }}" class="card-img-top" alt="{{ service.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ service.name }}</h5>
+                        <p class="card-text">{{ service.description|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-primary fw-bold">${{ service.price }}</span>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'core:service_detail' service.id %}" class="btn btn-outline-primary">Learn More</a>
+                            {% else %}
+                                <a href="{% url 'core:login' %}?next={% url 'core:service_detail' service.id %}" class="btn btn-outline-primary">Learn More</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-5">
+            <a href="{% url 'core:service_list' %}" class="btn btn-primary btn-lg">
+                {% if user.is_authenticated %}
+                    Explore Our Services
+                {% else %}
+                    View All Services
+                {% endif %}
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Choose Us</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="fas fa-clock fa-3x text-primary mb-3"></i>
+                    <h4>24/7 Support</h4>
+                    <p>Our team is available round the clock to assist you with any technical issues.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="fas fa-user-shield fa-3x text-primary mb-3"></i>
+                    <h4>Expert Team</h4>
+                    <p>Our technicians are certified professionals with years of experience.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="fas fa-dollar-sign fa-3x text-primary mb-3"></i>
+                    <h4>Competitive Pricing</h4>
+                    <p>Get high-quality support at reasonable prices with flexible payment options.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5 bg-light">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Frequently Asked Questions</h2>
+            <p class="lead text-muted">Find quick answers to common questions about our services</p>
+            {% if user.is_authenticated %}
+                <div class="mt-4">
+                    <a href="{% url 'core:ticket_create' %}" class="btn btn-primary">Ask a Question</a>
+                </div>
+            {% else %}
+                <div class="mt-4">
+                    <a href="{% url 'core:register' %}" class="btn btn-primary">Sign Up for Support</a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item border-0 mb-3 shadow-sm">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                How quickly can I get technical support?
+                            </button>
+                        </h3>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Our support team is available 24/7. Once you submit a ticket, you'll receive an initial response within 15-30 minutes. For urgent issues, we provide immediate assistance through our priority support channels.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item border-0 mb-3 shadow-sm">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                What types of technical issues do you handle?
+                            </button>
+                        </h3>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We handle a wide range of technical issues including hardware repairs, software troubleshooting, network setup and maintenance, cybersecurity, data recovery, and cloud services. Our expert team is equipped to handle both simple and complex technical challenges.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item border-0 mb-3 shadow-sm">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Do you offer remote support?
+                            </button>
+                        </h3>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, we offer secure remote support for many issues that don't require physical intervention. This allows us to resolve your problems quickly without the need for on-site visits. For hardware issues, we provide on-site support services.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item border-0 mb-3 shadow-sm">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                What are your service rates?
+                            </button>
+                        </h3>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Our rates vary depending on the service type and complexity. We offer both one-time service fees and monthly subscription plans. You can view our detailed pricing on our services page. We pride ourselves on providing competitive rates and excellent value for money.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item border-0 mb-3 shadow-sm">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                How do I get started?
+                            </button>
+                        </h3>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Getting started is easy! Simply create an account, choose your service plan, and submit your first support ticket. Our team will guide you through the process and ensure you get the help you need right away.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Get Started?</h2>
+        {% if user.is_authenticated %}
+            <p class="lead mb-4">Need help with a technical issue? Create a support ticket now.</p>
+            <a href="{% url 'core:ticket_create' %}" class="btn btn-light btn-lg">Create Support Ticket</a>
+        {% else %}
+            <p class="lead mb-4">Join thousands of satisfied customers who trust our support system.</p>
+            <a href="{% url 'core:register' %}" class="btn btn-light btn-lg">Create Your Account</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

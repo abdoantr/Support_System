@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ service.name }} - Support System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/service_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Service Header -->
+<section class="service-header text-white py-5">
+    <div class="container py-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="badge bg-light text-primary mb-3">{{ service.get_category_display }}</span>
+                <h1 class="display-4 fw-bold mb-3">{{ service.name }}</h1>
+                <p class="lead mb-4">{{ service.description }}</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'core:ticket_create' %}?service={{ service.id }}" class="btn btn-light btn-lg rounded-pill px-5">Get Support Now</a>
+                {% else %}
+                <div class="d-grid gap-3 d-md-flex">
+                    <a href="{% url 'core:register' %}" class="btn btn-light btn-lg rounded-pill px-5">Get Started</a>
+                    <a href="{% url 'core:login' %}" class="btn btn-outline-light btn-lg rounded-pill px-5">Login</a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-4 d-none d-lg-block">
+                {% if service.image %}
+                <img src="{{ service.image.url }}" alt="{{ service.name }}" class="img-fluid rounded-3">
+                {% else %}
+                <div class="bg-light rounded-3 p-5 text-center">
+                    <i class="fas fa-laptop text-primary display-1"></i>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Service Details -->
+<section class="py-5">
+    <div class="container py-4">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Features -->
+                <h2 class="fw-bold mb-4">Key Features</h2>
+                <div class="row g-4 mb-5">
+                    {% for feature in service.features.all %}
+                    <div class="col-md-6">
+                        <div class="feature-card p-4 bg-light h-100">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <h5 class="mb-0">{{ feature.name }}</h5>
+                            </div>
+                            <p class="text-muted mb-0">{{ feature.description }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Process -->
+                <h2 class="fw-bold mb-4">How It Works</h2>
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="feature-icon mx-auto mb-3">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <h5>1. Sign Up</h5>
+                            <p class="text-muted">Create your account to get started</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="feature-icon mx-auto mb-3">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <h5>2. Submit Request</h5>
+                            <p class="text-muted">Describe your technical issue</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="feature-icon mx-auto mb-3">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h5>3. Get Support</h5>
+                            <p class="text-muted">Our experts will help you</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Pricing -->
+                <div class="price-card p-4 mb-4">
+                    <h3 class="fw-bold mb-3">Pricing</h3>
+                    <div class="d-flex align-items-baseline mb-3">
+                        <span class="display-4 fw-bold text-primary">${{ service.price }}</span>
+                        {% if service.price_period %}
+                        <span class="text-muted ms-2">/{{ service.price_period }}</span>
+                        {% endif %}
+                    </div>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>24/7 Support</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Expert Technicians</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Quick Response</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Satisfaction Guaranteed</li>
+                    </ul>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'core:ticket_create' %}?service={{ service.id }}" class="btn btn-primary btn-lg w-100 rounded-pill">Get Started</a>
+                    {% else %}
+                    <a href="{% url 'core:register' %}" class="btn btn-primary btn-lg w-100 rounded-pill mb-2">Create Account</a>
+                    <a href="{% url 'core:login' %}" class="btn btn-outline-primary btn-lg w-100 rounded-pill">Login</a>
+                    {% endif %}
+                </div>
+
+                <!-- Contact Support -->
+                <div class="bg-light rounded-3 p-4">
+                    <h4 class="fw-bold mb-3">Need Help?</h4>
+                    <p class="text-muted mb-4">Contact our support team for assistance or questions about our services.</p>
+                    <a href="{% url 'core:contact' %}" class="btn btn-outline-primary rounded-pill w-100">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Related Services -->
+{% if related_services %}
+<section class="py-5 bg-light">
+    <div class="container py-4">
+        <h2 class="fw-bold mb-4">Related Services</h2>
+        <div class="row g-4">
+            {% for related in related_services %}
+            <div class="col-md-4">
+                <div class="related-service-card card h-100">
+                    {% if related.image %}
+                    <img src="{{ related.image.url }}" class="card-img-top" alt="{{ related.name }}">
+                    {% else %}
+                    <div class="bg-light py-4 text-center">
+                        <i class="fas fa-laptop text-primary display-4"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">{{ related.name }}</h5>
+                        <p class="card-text text-muted">{{ related.description|truncatewords:20 }}</p>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-primary fw-bold">${{ related.price }}</span>
+                            <a href="{% url 'core:service_detail' related.id %}" class="btn btn-outline-primary rounded-pill">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action -->
+<section class="py-5">
+    <div class="container py-4">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h2 class="display-6 fw-bold mb-4">Ready to Get Started?</h2>
+                <p class="lead mb-4">Join thousands of satisfied customers who trust our support system.</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'core:ticket_create' %}?service={{ service.id }}" class="btn btn-primary btn-lg rounded-pill px-5">Get Support Now</a>
+                {% else %}
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a href="{% url 'core:register' %}" class="btn btn-primary btn-lg rounded-pill px-5">Create Account</a>
+                    <a href="{% url 'core:login' %}" class="btn btn-outline-primary btn-lg rounded-pill px-5">Login</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

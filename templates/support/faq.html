@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FAQ - Support System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/faq.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- FAQ Header -->
+<section class="faq-header text-white py-5">
+    <div class="container py-4">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">Frequently Asked Questions</h1>
+                <p class="lead mb-4">Find quick answers to common questions about our services and support</p>
+                <div class="search-box mx-auto">
+                    <input type="text" class="form-control form-control-lg" id="faqSearch" placeholder="Search FAQ...">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Categories -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+            <!-- Technical Support -->
+            <div class="col-md-4">
+                <div class="category-card" data-category="technical">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h3>Technical Support</h3>
+                    <p>Questions about our technical support services</p>
+                </div>
+            </div>
+            
+            <!-- Account & Billing -->
+            <div class="col-md-4">
+                <div class="category-card" data-category="billing">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h3>Account & Billing</h3>
+                    <p>Payment, subscription, and account-related questions</p>
+                </div>
+            </div>
+            
+            <!-- Services -->
+            <div class="col-md-4">
+                <div class="category-card" data-category="services">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>Services</h3>
+                    <p>Learn more about our service offerings</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Content -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <!-- Technical Support FAQs -->
+                <div class="faq-section" id="technical">
+                    <h2 class="section-title">Technical Support</h2>
+                    <div class="accordion" id="technicalAccordion">
+                        {% for faq in technical_faqs %}
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#technical{{ forloop.counter }}">
+                                    {{ faq.question }}
+                                </button>
+                            </h3>
+                            <div id="technical{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#technicalAccordion">
+                                <div class="accordion-body">
+                                    {{ faq.answer|safe }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Account & Billing FAQs -->
+                <div class="faq-section" id="billing">
+                    <h2 class="section-title">Account & Billing</h2>
+                    <div class="accordion" id="billingAccordion">
+                        {% for faq in billing_faqs %}
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#billing{{ forloop.counter }}">
+                                    {{ faq.question }}
+                                </button>
+                            </h3>
+                            <div id="billing{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#billingAccordion">
+                                <div class="accordion-body">
+                                    {{ faq.answer|safe }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Services FAQs -->
+                <div class="faq-section" id="services">
+                    <h2 class="section-title">Services</h2>
+                    <div class="accordion" id="servicesAccordion">
+                        {% for faq in services_faqs %}
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#services{{ forloop.counter }}">
+                                    {{ faq.question }}
+                                </button>
+                            </h3>
+                            <div id="services{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#servicesAccordion">
+                                <div class="accordion-body">
+                                    {{ faq.answer|safe }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Support -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-6">
+                <h2>Couldn't find what you're looking for?</h2>
+                <p class="lead mb-4">Our support team is here to help you with any questions you may have</p>
+                <a href="{% url 'core:contact' %}" class="btn btn-primary btn-lg">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/faq.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% autoescape off %}
+Hello {{ user.first_name }},
+
+Thank you for registering with {{ site_name }}. To complete your registration and verify your email address, please click the link below:
+
+{{ protocol }}://{{ domain }}{% url 'core:verify_email' uidb64=uid token=token %}
+
+This link will expire in 24 hours.
+
+If you did not register for an account with {{ site_name }}, you can safely ignore this email.
+
+Best regards,
+The {{ site_name }} team
+{% endautoescape %}

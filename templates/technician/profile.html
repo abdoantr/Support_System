@@ -1,0 +1,519 @@
+{% extends 'technician/base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .profile-info-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        height: 100%;
+        transition: all 0.3s;
+    }
+    
+    .profile-info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 15px 20px;
+    }
+    
+    .profile-stats-card {
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+        border: none;
+    }
+    
+    .profile-stats-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.08);
+    }
+    
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        color: white;
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        margin: 0;
+        margin-top: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+    }
+    
+    .skill-level {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .activity-item {
+        border-left: 3px solid transparent;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        transition: all 0.2s;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+    
+    .activity-item:hover {
+        border-left-color: #3498db;
+        background-color: #f0f4f7;
+    }
+    
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        color: white;
+    }
+    
+    .badge-custom {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-weight: normal;
+        font-size: 0.75rem;
+    }
+    
+    .availability-toggle {
+        width: 60px;
+        height: 30px;
+    }
+    
+    .availability-toggle .form-check-input {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+    }
+    
+    .bg-light-blue {
+        background-color: rgba(52, 152, 219, 0.1);
+    }
+    
+    .bg-light-green {
+        background-color: rgba(46, 204, 113, 0.1);
+    }
+    
+    .bg-light-orange {
+        background-color: rgba(230, 126, 34, 0.1);
+    }
+    
+    .bg-light-purple {
+        background-color: rgba(155, 89, 182, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container py-4">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="row align-items-center">
+            <div class="col-md-2 text-center text-md-start mb-3 mb-md-0">
+                {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="{{ user.get_full_name }}" class="profile-avatar">
+                {% else %}
+                <div class="profile-avatar d-flex align-items-center justify-content-center bg-primary">
+                    <span class="display-4">{{ user.get_initials }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-7">
+                <h1 class="display-6 mb-1">{{ user.get_full_name|default:user.username }}</h1>
+                <p class="lead mb-2">{{ technician_profile.job_title|default:"Support Technician" }}</p>
+                <div class="d-flex align-items-center mb-3">
+                    <span class="me-3">
+                        <i class="fas fa-envelope me-1"></i> {{ user.email }}
+                    </span>
+                    {% if user.profile.phone_number %}
+                    <span class="me-3">
+                        <i class="fas fa-phone me-1"></i> {{ user.profile.phone_number }}
+                    </span>
+                    {% endif %}
+                    <span>
+                        <i class="fas fa-calendar me-1"></i> Joined {{ user.date_joined|date:"M d, Y" }}
+                    </span>
+                </div>
+                
+                <div class="d-flex flex-wrap">
+                    {% if technician_profile.skills %}
+                    {% for skill in technician_profile.skills %}
+                    <span class="badge bg-light text-dark me-2 mb-2">{{ skill }}</span>
+                    {% endfor %}
+                    {% else %}
+                    <span class="badge bg-light text-dark me-2 mb-2">Technical Support</span>
+                    <span class="badge bg-light text-dark me-2 mb-2">Customer Service</span>
+                    <span class="badge bg-light text-dark me-2 mb-2">Troubleshooting</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3 text-center text-md-end mt-3 mt-md-0">
+                <div class="d-flex flex-column align-items-center align-items-md-end">
+                    <div class="form-check form-switch availability-toggle mb-2">
+                        <input class="form-check-input" type="checkbox" id="availabilityToggle" {% if is_available %}checked{% endif %}>
+                        <label class="form-check-label visually-hidden" for="availabilityToggle">Availability</label>
+                    </div>
+                    <div>
+                        <span class="badge {% if is_available %}bg-success{% else %}bg-secondary{% endif %} mb-3">
+                            {% if is_available %}Available{% else %}Away{% endif %}
+                        </span>
+                    </div>
+                    <a href="{% url 'core:settings' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-cog me-1"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Left Column: Stats and Skills -->
+        <div class="col-lg-4">
+            <!-- Performance Stats -->
+            <div class="card profile-info-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i> Performance Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>Resolution Rate</span>
+                            <span>{{ performance.resolution_rate|floatformat:1 }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ performance.resolution_rate }}%" aria-valuenow="{{ performance.resolution_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>Avg. Resolution Time</span>
+                            <span>{{ performance.avg_resolution_time }} hours</span>
+                        </div>
+                        <div class="progress">
+                            {% with efficiency=100|sub:performance.avg_resolution_time|div:24|mul:100 %}
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {% if efficiency < 0 %}0{% elif efficiency > 100 %}100{% else %}{{ efficiency }}{% endif %}%" aria-valuenow="{{ efficiency }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>Customer Satisfaction</span>
+                            <span>{{ performance.customer_satisfaction|floatformat:1 }}/5</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ performance.customer_satisfaction|mul:20 }}%" aria-valuenow="{{ performance.customer_satisfaction|mul:20 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ticket Stats -->
+            <div class="row">
+                <div class="col-md-6 col-lg-12 mb-4">
+                    <div class="card profile-stats-card bg-light-blue">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-ticket-alt fa-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="stat-value">{{ assigned_tickets_count }}</h3>
+                                <p class="stat-label">Total Tickets</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-12 mb-4">
+                    <div class="card profile-stats-card bg-light-green">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-check-circle fa-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="stat-value">{{ resolved_tickets_count }}</h3>
+                                <p class="stat-label">Resolved Tickets</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-12 mb-4">
+                    <div class="card profile-stats-card bg-light-orange">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-spinner fa-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="stat-value">{{ open_tickets_count }}</h3>
+                                <p class="stat-label">Open Tickets</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-12 mb-4">
+                    <div class="card profile-stats-card bg-light-purple">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-book fa-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="stat-value">{{ kb_articles_count }}</h3>
+                                <p class="stat-label">KB Articles</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: Recent Activity and Details -->
+        <div class="col-lg-8">
+            <!-- About Section -->
+            <div class="card profile-info-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i> About</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ technician_profile.bio|default:"No bio information provided." }}</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Skills & Expertise</h6>
+                            {% if technician_profile and technician_profile.skill_ratings %}
+                                {% for skill, rating in technician_profile.skill_ratings.items %}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>{{ skill }}</span>
+                                        <span class="skill-level">{{ rating }}/5</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: {{ rating|mul:20 }}%" aria-valuenow="{{ rating|mul:20 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>Technical Support</span>
+                                        <span class="skill-level">4/5</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>Customer Service</span>
+                                        <span class="skill-level">5/5</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>Troubleshooting</span>
+                                        <span class="skill-level">4/5</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Contact & Personal Info</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-envelope text-muted me-2"></i> {{ user.email }}
+                                </li>
+                                {% if user.profile.phone_number %}
+                                <li class="mb-2">
+                                    <i class="fas fa-phone text-muted me-2"></i> {{ user.profile.phone_number }}
+                                </li>
+                                {% endif %}
+                                {% if technician_profile.department %}
+                                <li class="mb-2">
+                                    <i class="fas fa-building text-muted me-2"></i> {{ technician_profile.department }}
+                                </li>
+                                {% endif %}
+                                {% if technician_profile.location %}
+                                <li class="mb-2">
+                                    <i class="fas fa-map-marker-alt text-muted me-2"></i> {{ technician_profile.location }}
+                                </li>
+                                {% endif %}
+                                <li>
+                                    <i class="fas fa-calendar text-muted me-2"></i> Joined {{ user.date_joined|date:"M d, Y" }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="card profile-info-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_tickets or recent_comments %}
+                        <!-- Recent Tickets -->
+                        {% if recent_tickets %}
+                        <h6 class="mb-3">Recent Tickets</h6>
+                        {% for ticket in recent_tickets %}
+                        <div class="activity-item">
+                            <div class="d-flex align-items-center">
+                                <div class="activity-icon {% if ticket.status == 'resolved' %}bg-success{% elif ticket.status == 'closed' %}bg-secondary{% elif ticket.status == 'open' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    <i class="fas fa-ticket-alt"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-0">
+                                            <a href="{% url 'core:technician_ticket_detail' ticket.id %}">{{ ticket.title }}</a>
+                                        </h6>
+                                        <span class="badge {% if ticket.status == 'resolved' %}bg-success{% elif ticket.status == 'closed' %}bg-secondary{% elif ticket.status == 'open' %}bg-danger{% else %}bg-warning{% endif %} badge-custom">
+                                            {{ ticket.status|title }}
+                                        </span>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <span><i class="fas fa-clock me-1"></i> {{ ticket.updated_at|date:"M d, Y H:i" }}</span>
+                                        <span class="ms-2"><i class="fas fa-user me-1"></i> {{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Recent Comments -->
+                        {% if recent_comments %}
+                        <h6 class="mt-4 mb-3">Recent Comments</h6>
+                        {% for comment in recent_comments %}
+                        <div class="activity-item">
+                            <div class="d-flex align-items-center">
+                                <div class="activity-icon bg-info">
+                                    <i class="fas fa-comment"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-0">
+                                            <a href="{% url 'core:technician_ticket_detail' comment.ticket.id %}">{{ comment.ticket.title }}</a>
+                                        </h6>
+                                        <span class="text-muted small">{{ comment.created_at|date:"M d, Y H:i" }}</span>
+                                    </div>
+                                    <p class="mb-0 text-muted small">{{ comment.content|truncatechars:100 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <h5>No recent activity</h5>
+                            <p class="text-muted">You haven't made any changes or updates recently.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle availability toggle
+        const availabilityToggle = document.getElementById('availabilityToggle');
+        const availabilityBadge = document.querySelector('.badge');
+        
+        availabilityToggle.addEventListener('change', function() {
+            // Send AJAX request to toggle availability
+            fetch("{% url 'core:toggle_availability' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    available: this.checked
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update the badge
+                    if (this.checked) {
+                        availabilityBadge.textContent = 'Available';
+                        availabilityBadge.classList.remove('bg-secondary');
+                        availabilityBadge.classList.add('bg-success');
+                    } else {
+                        availabilityBadge.textContent = 'Away';
+                        availabilityBadge.classList.remove('bg-success');
+                        availabilityBadge.classList.add('bg-secondary');
+                    }
+                } else {
+                    console.error('Error toggling availability:', data.message);
+                    // Revert the toggle
+                    this.checked = !this.checked;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Revert the toggle
+                this.checked = !this.checked;
+            });
+        });
+    });
+</script>
+{% endblock %} 

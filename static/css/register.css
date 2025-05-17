@@ -1,0 +1,162 @@
+/* Form Card Styles */
+.card {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
+}
+
+.card-body {
+    padding: 2rem;
+    color: var(--neutral-900);
+}
+
+/* Form Input Styles */
+.form-control {
+    border: 1px solid var(--border-light);
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary-400);
+    box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.15);
+}
+
+.input-group .btn {
+    padding: 0.75rem;
+    border: 1px solid var(--border-light);
+    border-left: none;
+}
+
+.input-group .btn:hover {
+    background-color: var(--bg-secondary);
+}
+
+/* Password Validation Styles */
+.password-feedback {
+    margin-top: 0.75rem;
+
+}
+
+.feedback-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    color: var(--neutral-900);
+    font-size: 0.875rem;
+    transition: color 0.2s ease;
+}
+
+.feedback-item i {
+    width: 1rem;
+    margin-right: 0.5rem;
+    text-align: center;
+}
+
+.feedback-item.valid {
+    color: var(--success);
+}
+
+.feedback-item.invalid {
+    color: var(--danger);
+}
+
+/* Password Strength Meter */
+.password-strength-meter {
+    height: 4px;
+    background-color: var(--bg-secondary);
+    border-radius: 2px;
+    margin-top: 0.75rem;
+    overflow: hidden;
+}
+
+.password-strength-meter .meter {
+    height: 100%;
+    width: 0;
+    transition: all 0.3s ease;
+}
+
+.strength-weak .meter {
+    width: 33.33%;
+    background-color: var(--danger);
+}
+
+.strength-medium .meter {
+    width: 66.66%;
+    background-color: var(--warning);
+}
+
+.strength-strong .meter {
+    width: 100%;
+    background-color: var(--success);
+}
+
+/* Button Styles */
+.btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-600);
+    border-color: var(--primary-600);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-700);
+    border-color: var(--primary-700);
+}
+
+.btn-outline-secondary {
+    color: var(--neutral-700);
+    border-color: var(--border-light);
+}
+
+.btn-outline-secondary:hover {
+    color: var(--primary-500);
+    background-color: var(--bg-secondary);
+    border-color: var(--border-light);
+}
+
+/* Form Check Styles */
+.form-check {
+    margin-bottom: 1rem;
+}
+
+.form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.125rem;
+    border: 2px solid var(--primary-600);
+    transition: all 0.2s ease;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-600);
+    border-color: var(--primary-600);
+}
+
+.form-check-label {
+    padding-left: 0.5rem;
+    color: var(--neutral-900);
+}
+
+/* Alert Styles */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert-dismissible .btn-close {
+    padding: 1.25rem;
+}
+
+.strength-weak .meter { width: 33.33%; background-color: var(--bs-danger); }
+.strength-medium .meter { width: 66.66%; background-color: var(--bs-warning); }
+.strength-strong .meter { width: 100%; background-color: var(--bs-success); }

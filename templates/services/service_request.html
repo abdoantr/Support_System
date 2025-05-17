@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Request Service - Support System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/service_request.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Service Request Header -->
+<section class="request-header text-white py-5">
+    <div class="container py-4">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">Request Service</h1>
+                <p class="lead mb-4">Fill out the form below to request our services. We'll get back to you within 24 hours.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Service Request Form -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <form id="serviceRequestForm" method="POST" action="{% url 'core:submit_service_request' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Service Selection -->
+                        <div class="form-section">
+                            <h3>Service Details</h3>
+                            <div class="mb-4">
+                                <label class="form-label">Select Service*</label>
+                                <select class="form-select" name="service_type" required>
+                                    <option value="">Choose a service...</option>
+                                    {% for service in services %}
+                                    <option value="{{ service.id }}">{{ service.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Service Priority*</label>
+                                <select class="form-select" name="priority" required>
+                                    <option value="normal">Normal</option>
+                                    <option value="urgent">Urgent</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Information -->
+                        <div class="form-section">
+                            <h3>Contact Information</h3>
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Full Name*</label>
+                                    <input type="text" class="form-control" name="full_name" required>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Email*</label>
+                                    <input type="email" class="form-control" name="email" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" name="phone">
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Company Name</label>
+                                    <input type="text" class="form-control" name="company">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Request Details -->
+                        <div class="form-section">
+                            <h3>Request Details</h3>
+                            <div class="mb-4">
+                                <label class="form-label">Subject*</label>
+                                <input type="text" class="form-control" name="subject" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Description*</label>
+                                <textarea class="form-control" name="description" rows="5" required></textarea>
+                                <div class="form-text">Please provide as much detail as possible about your service request.</div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Attachments</label>
+                                <input type="file" class="form-control" name="attachments" multiple>
+                                <div class="form-text">You can upload multiple files (max 5MB each).</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Information -->
+                        <div class="form-section">
+                            <h3>Additional Information</h3>
+                            <div class="mb-4">
+                                <label class="form-label">Preferred Contact Method</label>
+                                <select class="form-select" name="contact_method">
+                                    <option value="email">Email</option>
+                                    <option value="phone">Phone</option>
+                                    <option value="both">Both</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Best Time to Contact</label>
+                                <select class="form-select" name="contact_time">
+                                    <option value="morning">Morning (9AM - 12PM)</option>
+                                    <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                                    <option value="evening">Evening (5PM - 8PM)</option>
+                                    <option value="anytime">Anytime</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="form-section">
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" name="terms" required>
+                                <label class="form-check-label">
+                                    I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Add your terms and conditions content here -->
+                <h6>1. Service Agreement</h6>
+                <p>By submitting this form, you agree to our service terms...</p>
+                
+                <h6>2. Privacy Policy</h6>
+                <p>We respect your privacy and will handle your information according to our privacy policy...</p>
+                
+                <h6>3. Response Time</h6>
+                <p>We aim to respond to all service requests within 24 hours...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/service_request.js' %}"></script>
+{% endblock %}

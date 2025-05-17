@@ -1,0 +1,324 @@
+{% extends 'technician/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+    .stat-card.primary { background: linear-gradient(135deg, #4e73df, #3755c2); }
+    .stat-card.success { background: linear-gradient(135deg, #1cc88a, #169969); }
+    .stat-card.warning { background: linear-gradient(135deg, #f6c23e, #d9a420); }
+    .stat-card.danger { background: linear-gradient(135deg, #e74a3b, #c23321); }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+    }
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    .ticket-list-item {
+        transition: background-color 0.2s ease;
+    }
+    .ticket-list-item:hover {
+        background-color: rgba(0,0,0,0.03);
+    }
+    .performance-chart {
+        height: 300px;
+    }
+    .activity-item {
+        border-left: 3px solid #4e73df;
+        padding-left: 15px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    .activity-item::before {
+        content: '';
+        position: absolute;
+        left: -6px;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #4e73df;
+    }
+    .activity-timestamp {
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0 text-gray-800">Technician Dashboard</h1>
+        <p class="text-muted">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</p>
+    </div>
+</div>
+
+<!-- Statistics Row -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card primary text-white p-3">
+            <div class="row no-gutters align-items-center">
+                <div class="col-auto">
+                    <i class="fas fa-clipboard-list stat-icon mr-2"></i>
+                </div>
+                <div class="col ml-3">
+                    <div class="stat-value" data-value="{{ assigned_tickets_count }}">{{ assigned_tickets_count }}</div>
+                    <div class="stat-label">Assigned Tickets</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card success text-white p-3">
+            <div class="row no-gutters align-items-center">
+                <div class="col-auto">
+                    <i class="fas fa-check-circle stat-icon mr-2"></i>
+                </div>
+                <div class="col ml-3">
+                    <div class="stat-value" data-value="{{ resolved_tickets_count }}">{{ resolved_tickets_count }}</div>
+                    <div class="stat-label">Resolved Tickets</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card warning text-white p-3">
+            <div class="row no-gutters align-items-center">
+                <div class="col-auto">
+                    <i class="fas fa-clock stat-icon mr-2"></i>
+                </div>
+                <div class="col ml-3">
+                    <div class="stat-value" data-value="{{ in_progress_tickets_count }}">{{ in_progress_tickets_count }}</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card danger text-white p-3">
+            <div class="row no-gutters align-items-center">
+                <div class="col-auto">
+                    <i class="fas fa-exclamation-circle stat-icon mr-2"></i>
+                </div>
+                <div class="col ml-3">
+                    <div class="stat-value" data-value="{{ overdue_tickets_count }}">{{ overdue_tickets_count }}</div>
+                    <div class="stat-label">Overdue Tickets</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Row -->
+<div class="row">
+    <!-- Performance Chart -->
+    <div class="col-xl-8 col-lg-7 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Performance Overview</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                        <a class="dropdown-item" href="#">Weekly</a>
+                        <a class="dropdown-item" href="#">Monthly</a>
+                        <a class="dropdown-item" href="#">Yearly</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="performance-chart" id="performanceChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-xl-4 col-lg-5 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                    {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div class="activity-content">
+                                <div class="activity-description">{{ activity.description }}</div>
+                                <div class="activity-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted my-5">No recent activities to display</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Tickets Row -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Tickets</h6>
+                <a href="{% url 'core:technician_tickets' %}" class="btn btn-sm btn-primary">
+                    View All Tickets
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_tickets %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Subject</th>
+                                    <th>Customer</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Created</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in recent_tickets %}
+                                <tr class="ticket-list-item">
+                                    <td>#{{ ticket.id }}</td>
+                                    <td>{{ ticket.subject }}</td>
+                                    <td>{{ ticket.customer.get_full_name|default:ticket.customer.username }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ ticket.get_status_color }}">
+                                            {{ ticket.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ ticket.get_priority_color }}">
+                                            {{ ticket.get_priority_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ ticket.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'core:technician_ticket_detail' ticket.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted my-5">
+                        <i class="fas fa-ticket-alt fa-3x mb-3"></i>
+                        <p>No recent tickets to display</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize stat counters with animation
+        document.querySelectorAll('.stat-value').forEach(function(element) {
+            const target = parseInt(element.getAttribute('data-value'));
+            animateCounter(element, 0, target, 1500);
+        });
+        
+        // Initialize performance chart
+        const ctx = document.getElementById('performanceChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Tickets Resolved',
+                        backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                        pointBorderColor: 'rgba(78, 115, 223, 1)',
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
+                        pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                        pointHitRadius: 10,
+                        pointBorderWidth: 2,
+                        data: [{{ performance_data|default:'5, 10, 8, 15' }}],
+                        fill: true
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 25,
+                            top: 25,
+                            bottom: 0
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    function animateCounter(element, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const value = Math.floor(progress * (end - start) + start);
+            element.innerText = value;
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+</script>
+{% endblock %} 

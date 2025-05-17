@@ -1,0 +1,381 @@
+{% extends 'technician/base.html' %}
+{% load static %}
+
+{% block title %}Knowledge Base{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kb-header {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .article-card {
+        transition: all 0.2s;
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: none;
+    }
+    
+    .article-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .article-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .article-card .card-footer {
+        background-color: #ffffff;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .article-tag {
+        display: inline-block;
+        padding: 4px 10px;
+        background-color: #e9ecef;
+        color: #495057;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    
+    .category-filter {
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        margin: 0 5px 10px 0;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        transition: all 0.2s;
+    }
+    
+    .category-filter:hover, .category-filter.active {
+        background-color: #3498db;
+        color: white;
+        border-color: #3498db;
+    }
+    
+    .search-box {
+        border-radius: 50px;
+        padding-left: 20px;
+        padding-right: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .search-box:focus {
+        box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+    }
+    
+    .search-btn {
+        border-radius: 50px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .featured-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+    
+    .article-footer-meta {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .empty-state {
+        padding: 60px 0;
+        text-align: center;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #e9ecef;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Knowledge Base Header -->
+    <div class="kb-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <h1 class="display-6 mb-3">Knowledge Base</h1>
+                <p class="lead mb-4">Search for articles, guides, and documentation to help resolve issues.</p>
+                
+                <div class="d-flex align-items-center mt-3">
+                    <a href="{% url 'core:technician_create_article' %}" class="btn btn-light me-3">
+                        <i class="fas fa-plus me-2"></i> Create New Article
+                    </a>
+                    {% if is_admin %}
+                    <a href="#" class="btn btn-outline-light">
+                        <i class="fas fa-cog me-2"></i> Manage Categories
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-5">
+                <form class="mt-4 mt-md-0">
+                    <div class="input-group">
+                        <input type="text" class="form-control search-box" placeholder="Search articles..." value="{{ search }}">
+                        <button class="btn btn-light search-btn" type="submit">Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-3">
+            <!-- Categories and Filters -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Categories</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap">
+                        <a href="{% url 'core:technician_knowledge_base' %}" class="category-filter {% if not category %}active{% endif %}">All</a>
+                        {% for cat in categories %}
+                            <a href="{% url 'core:technician_knowledge_base' %}?category={{ cat.id }}" class="category-filter {% if category == cat.id %}active{% endif %}">{{ cat.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Visibility</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showPublic" checked>
+                        <label class="form-check-label" for="showPublic">
+                            Public
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showInternal" checked>
+                        <label class="form-check-label" for="showInternal">
+                            Internal
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showPrivate" checked>
+                        <label class="form-check-label" for="showPrivate">
+                            Private
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Popular Tags</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap">
+                        {% for tag in popular_tags %}
+                            <a href="{% url 'core:technician_knowledge_base' %}?tag={{ tag.name }}" class="article-tag text-decoration-none">{{ tag.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <!-- Featured Articles -->
+            {% if featured_articles %}
+            <div class="mb-4">
+                <h5 class="mb-3">Featured Articles</h5>
+                <div class="row">
+                    {% for article in featured_articles %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card article-card h-100" data-visibility="{{ article.visibility }}">
+                            <span class="badge bg-warning featured-badge">Featured</span>
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">{{ article.title }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-muted">{{ article.short_description }}</p>
+                                <div class="mt-3">
+                                    {% for tag in article.tags %}
+                                    <span class="article-tag">{{ tag }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="article-footer-meta">
+                                        <span><i class="fas fa-eye me-1"></i> {{ article.views|default:0 }}</span>
+                                        <span class="ms-2"><i class="fas fa-calendar me-1"></i> {{ article.updated_at|date:"M d, Y" }}</span>
+                                    </div>
+                                    <a href="{% url 'core:technician_article_detail' article.id %}" class="btn btn-sm btn-primary">View</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- All Articles -->
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">All Articles</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Sort by: {{ sort_by|default:"Latest" }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                            <li><a class="dropdown-item" href="?sort=latest{% if category %}&category={{ category }}{% endif %}{% if tag %}&tag={{ tag }}{% endif %}">Latest</a></li>
+                            <li><a class="dropdown-item" href="?sort=oldest{% if category %}&category={{ category }}{% endif %}{% if tag %}&tag={{ tag }}{% endif %}">Oldest</a></li>
+                            <li><a class="dropdown-item" href="?sort=views{% if category %}&category={{ category }}{% endif %}{% if tag %}&tag={{ tag }}{% endif %}">Most Viewed</a></li>
+                            <li><a class="dropdown-item" href="?sort=a-z{% if category %}&category={{ category }}{% endif %}{% if tag %}&tag={{ tag }}{% endif %}">A-Z</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                {% if articles %}
+                <div class="row">
+                    {% for article in articles %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card article-card h-100" data-visibility="{{ article.visibility }}">
+                            {% if article.is_featured %}
+                            <span class="badge bg-warning featured-badge">Featured</span>
+                            {% endif %}
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">{{ article.title }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-muted">{{ article.short_description }}</p>
+                                <div class="mt-3">
+                                    {% for tag in article.tags %}
+                                    <span class="article-tag">{{ tag }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="article-footer-meta">
+                                        <span><i class="fas fa-eye me-1"></i> {{ article.views|default:0 }}</span>
+                                        <span class="ms-2"><i class="fas fa-calendar me-1"></i> {{ article.updated_at|date:"M d, Y" }}</span>
+                                    </div>
+                                    <a href="{% url 'core:technician_article_detail' article.id %}" class="btn btn-sm btn-primary">View</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if category %}&category={{ category }}{% endif %}{% if tag %}&tag={{ tag }}{% endif %}{% if search %}&search={{ search }}{% endif %}" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if category %}&category={{ category }}{% endif %}{% if tag %}&tag={{ tag }}{% endif %}{% if search %}&search={{ search }}{% endif %}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}{% if category %}&category={{ category }}{% endif %}{% if tag %}&tag={{ tag }}{% endif %}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if category %}&category={{ category }}{% endif %}{% if tag %}&tag={{ tag }}{% endif %}{% if search %}&search={{ search }}{% endif %}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if category %}&category={{ category }}{% endif %}{% if tag %}&tag={{ tag }}{% endif %}{% if search %}&search={{ search }}{% endif %}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <i class="fas fa-file-alt"></i>
+                    <h4>No articles found</h4>
+                    <p class="text-muted">
+                        {% if search %}
+                            No articles matching "{{ search }}" were found. Try different keywords or browse by category.
+                        {% elif category %}
+                            No articles in this category yet.
+                        {% elif tag %}
+                            No articles with the tag "{{ tag }}" were found.
+                        {% else %}
+                            The knowledge base is empty. Be the first to create an article!
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'core:technician_create_article' %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus me-2"></i> Create New Article
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle visibility filters
+        const visibilityCheckboxes = document.querySelectorAll('#showPublic, #showInternal, #showPrivate');
+        const articleCards = document.querySelectorAll('.article-card');
+        
+        function updateVisibility() {
+            const showPublic = document.getElementById('showPublic').checked;
+            const showInternal = document.getElementById('showInternal').checked;
+            const showPrivate = document.getElementById('showPrivate').checked;
+            
+            articleCards.forEach(card => {
+                const visibility = card.dataset.visibility;
+                if ((visibility === 'public' && showPublic) ||
+                    (visibility === 'internal' && showInternal) ||
+                    (visibility === 'private' && showPrivate)) {
+                    card.closest('.col-md-6, .col-lg-4').style.display = '';
+                } else {
+                    card.closest('.col-md-6, .col-lg-4').style.display = 'none';
+                }
+            });
+        }
+        
+        visibilityCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateVisibility);
+        });
+    });
+</script>
+{% endblock %} 

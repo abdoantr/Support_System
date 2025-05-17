@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us - Support System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contact.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Contact Header -->
+<section class="contact-header text-white py-5">
+    <div class="container py-4">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">Contact Us</h1>
+                <p class="lead mb-0">Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="py-5">
+    <div class="container py-4">
+        <div class="row g-4">
+            <!-- Contact Information -->
+            <div class="col-lg-4">
+                <div class="contact-info-card p-4 h-100">
+                    <div class="contact-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h4 class="text-center mb-4">Visit Us</h4>
+                    <p class="text-center text-muted mb-0">
+                        123 Tech Street<br>
+                        Silicon Valley, CA 94025<br>
+                        United States
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="contact-info-card p-4 h-100">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h4 class="text-center mb-4">Call Us</h4>
+                    <p class="text-center text-muted mb-0">
+                        <a href="tel:+1234567890" class="text-decoration-none text-muted">+1 (234) 567-890</a><br>
+                        Monday - Friday<br>
+                        9:00 AM - 6:00 PM
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="contact-info-card p-4 h-100">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h4 class="text-center mb-4">Email Us</h4>
+                    <p class="text-center text-muted mb-0">
+                        <a href="mailto:support@example.com" class="text-decoration-none text-muted">support@example.com</a><br>
+                        We'll respond within<br>
+                        24 hours
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Form -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-8">
+                <div class="contact-form p-5">
+                    <h2 class="text-center text-dark mb-4">Send Us a Message</h2>
+                    
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                                <div class="invalid-feedback">
+                                    Please provide your name.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <div class="invalid-feedback">
+                                    Please provide a valid email address.
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" name="subject" required>
+                                <div class="invalid-feedback">
+                                    Please provide a subject.
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                                <div class="invalid-feedback">
+                                    Please provide your message.
+                                </div>
+                            </div>
+                            
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5">Send Message</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="mb-4">Find Us on the Map</h2>
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3168.6278337721463!2d-122.08374688469225!3d37.42199797982362!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808fb7495bec0189%3A0x7c17d44a466baf9b!2sPalo+Alto%2C+CA+94304!5e0!3m2!1sen!2sus!4v1565305180576!5m2!1sen!2sus" 
+                        width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/contact.js' %}"></script>
+{% endblock %}

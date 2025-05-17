@@ -1,0 +1,578 @@
+{% extends 'technician/base.html' %}
+{% load static %}
+
+{% block title %}Tickets Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+    .tickets-card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .tickets-table th {
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .tickets-table th:hover {
+        background-color: rgba(0,0,0,0.03);
+    }
+    .tickets-table th i {
+        margin-left: 5px;
+        opacity: 0.6;
+    }
+    .tickets-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+    .tickets-table tbody tr:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+    .status-badge, .priority-badge {
+        padding: 0.35em 0.65em;
+        border-radius: 0.25rem;
+        font-size: 0.75em;
+        font-weight: 700;
+        transition: all 0.2s ease;
+    }
+    .status-badge:hover, .priority-badge:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .status-new { background-color: #e1f5fe; color: #0288d1; }
+    .status-in-progress { background-color: #fff8e1; color: #ffa000; }
+    .status-on-hold { background-color: #f3e5f5; color: #7b1fa2; }
+    .status-resolved { background-color: #e8f5e9; color: #2e7d32; }
+    .status-closed { background-color: #f5f5f5; color: #616161; }
+
+    .priority-low { background-color: #e8f5e9; color: #2e7d32; }
+    .priority-medium { background-color: #fff8e1; color: #ffa000; }
+    .priority-high { background-color: #ffebee; color: #c62828; }
+    .priority-urgent { background-color: #b71c1c; color: white; }
+
+    .filter-btn-group .btn {
+        margin-right: 0.25rem;
+        margin-bottom: 0.5rem;
+        border-radius: 20px;
+        transition: all 0.2s ease;
+    }
+    .filter-btn-group .btn:hover {
+        transform: translateY(-1px);
+    }
+    .filter-btn-group .btn.active {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .search-input-group {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    .search-input-group input {
+        border-right: none;
+    }
+    .search-input-group .btn {
+        border-left: none;
+        background-color: white;
+    }
+    .tickets-pagination .page-item .page-link {
+        border-radius: 0.25rem;
+        margin: 0 0.15rem;
+    }
+    .tickets-pagination .page-item.active .page-link {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+        background-color: #f8f9fc;
+        border-radius: 0.35rem;
+        transition: all 0.2s ease;
+    }
+    .empty-state:hover {
+        background-color: #f1f3f9;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: #d1d3e2;
+        margin-bottom: 1.5rem;
+    }
+    .action-dropdown .dropdown-item {
+        padding: 0.5rem 1rem;
+    }
+    .action-dropdown .dropdown-item i {
+        margin-right: 0.5rem;
+        width: 1rem;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h1 class="h3 mb-0 text-gray-800">Tickets Management</h1>
+        <button class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#createTicketModal">
+            <i class="fas fa-plus-circle me-2"></i> Create Ticket
+        </button>
+    </div>
+</div>
+
+<!-- Filters Card -->
+<div class="card filter-card">
+    <div class="card-header bg-light py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Filter Tickets</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="filter-btn-group mb-3">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2 text-gray-600"><i class="fas fa-filter me-1"></i>Status:</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary active filter-btn" data-filter="all">All</button>
+                        <button type="button" class="btn btn-sm btn-outline-info filter-btn" data-filter="new">New</button>
+                        <button type="button" class="btn btn-sm btn-outline-warning filter-btn" data-filter="in-progress">In Progress</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" data-filter="on-hold">On Hold</button>
+                        <button type="button" class="btn btn-sm btn-outline-success filter-btn" data-filter="resolved">Resolved</button>
+                        <button type="button" class="btn btn-sm btn-outline-dark filter-btn" data-filter="closed">Closed</button>
+                    </div>
+                </div>
+                <div class="filter-btn-group">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2 text-gray-600"><i class="fas fa-flag me-1"></i>Priority:</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary active filter-btn" data-filter="all">All</button>
+                        <button type="button" class="btn btn-sm btn-outline-success filter-btn" data-filter="low">Low</button>
+                        <button type="button" class="btn btn-sm btn-outline-warning filter-btn" data-filter="medium">Medium</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger filter-btn" data-filter="high">High</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger filter-btn" data-filter="urgent">Urgent</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group search-input-group">
+                    <input type="text" class="form-control" placeholder="Search tickets..." id="ticketSearch">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tickets Table Card -->
+<div class="card tickets-card">
+    <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">All Tickets</h6>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="bulkActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-cog me-1"></i> Bulk Actions
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="bulkActionDropdown">
+                <li><a class="dropdown-item" href="#"><i class="fas fa-check"></i> Mark Selected as Resolved</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fas fa-sync-alt"></i> Update Status</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fas fa-user-tag"></i> Reassign Tickets</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-times-circle"></i> Close Selected</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if tickets %}
+            <div class="table-responsive">
+                <table class="table tickets-table">
+                    <thead>
+                        <tr>
+                            <th width="40px">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </div>
+                            </th>
+                            <th width="60px">ID <i class="fas fa-sort"></i></th>
+                            <th>Subject <i class="fas fa-sort"></i></th>
+                            <th>Customer <i class="fas fa-sort"></i></th>
+                            <th>Status <i class="fas fa-sort"></i></th>
+                            <th>Priority <i class="fas fa-sort"></i></th>
+                            <th>Created <i class="fas fa-sort"></i></th>
+                            <th>Last Updated <i class="fas fa-sort"></i></th>
+                            <th width="120px">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr data-status="{{ ticket.status }}" data-priority="{{ ticket.priority }}">
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input ticket-checkbox" type="checkbox" value="{{ ticket.id }}">
+                                </div>
+                            </td>
+                            <td>#{{ ticket.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="text-truncate" style="max-width: 250px;">{{ ticket.subject }}</span>
+                                    {% if ticket.comments.count > 0 %}
+                                    <span class="badge bg-info rounded-pill ms-2">{{ ticket.comments.count }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>{{ ticket.customer.get_full_name|default:ticket.customer.username }}</td>
+                            <td>
+                                <span class="status-badge status-{{ ticket.status|slugify }}">
+                                    {{ ticket.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="priority-badge priority-{{ ticket.priority|lower }}">
+                                    {{ ticket.get_priority_display }}
+                                </span>
+                            </td>
+                            <td>{{ ticket.created_at|date:"M d, Y" }}</td>
+                            <td>{{ ticket.updated_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="dropdown action-dropdown">
+                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="{% url 'core:technician_ticket_detail' ticket.id %}"><i class="fas fa-eye"></i> View Details</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updateStatusModal{{ ticket.id }}"><i class="fas fa-sync-alt"></i> Update Status</a></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addCommentModal{{ ticket.id }}"><i class="fas fa-comment"></i> Add Comment</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reassignTicketModal{{ ticket.id }}"><i class="fas fa-user-tag"></i> Reassign</a></li>
+                                        {% if ticket.status != 'resolved' %}
+                                        <li><a class="dropdown-item text-success" href="#" data-ticket-id="{{ ticket.id }}" data-action="mark-resolved"><i class="fas fa-check-circle"></i> Mark Resolved</a></li>
+                                        {% endif %}
+                                        {% if ticket.status != 'closed' %}
+                                        <li><a class="dropdown-item text-danger" href="#" data-ticket-id="{{ ticket.id }}" data-action="close-ticket"><i class="fas fa-times-circle"></i> Close Ticket</a></li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if tickets.has_other_pages %}
+            <nav aria-label="Tickets pagination">
+                <ul class="pagination tickets-pagination justify-content-center mt-4">
+                    {% if tickets.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ tickets.previous_page_number }}" aria-label="Previous">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-chevron-left"></i></span>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in tickets.paginator.page_range %}
+                    {% if tickets.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% else %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if tickets.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ tickets.next_page_number }}" aria-label="Next">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-chevron-right"></i></span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-ticket-alt"></i>
+                <h4 class="text-gray-600">No tickets found</h4>
+                <p class="text-muted">There are no tickets matching your criteria.</p>
+                <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#createTicketModal">
+                    <i class="fas fa-plus-circle me-2"></i> Create New Ticket
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Create Ticket Modal -->
+<div class="modal fade" id="createTicketModal" tabindex="-1" aria-labelledby="createTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTicketModalLabel">Create New Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTicketForm" method="post" action="{% url 'core:technician_create_ticket' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="ticketSubject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="ticketSubject" name="subject" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="ticketCustomer" class="form-label">Customer</label>
+                            <select class="form-select" id="ticketCustomer" name="customer" required>
+                                <option value="" selected disabled>Select customer</option>
+                                {% for customer in customers %}
+                                <option value="{{ customer.id }}">{{ customer.get_full_name|default:customer.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ticketCategory" class="form-label">Category</label>
+                            <select class="form-select" id="ticketCategory" name="category" required>
+                                <option value="" selected disabled>Select category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="ticketPriority" class="form-label">Priority</label>
+                            <select class="form-select" id="ticketPriority" name="priority" required>
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ticketStatus" class="form-label">Status</label>
+                            <select class="form-select" id="ticketStatus" name="status" required>
+                                <option value="new" selected>New</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="on-hold">On Hold</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ticketDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="ticketDescription" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ticketAttachments" class="form-label">Attachments</label>
+                        <input class="form-control" type="file" id="ticketAttachments" name="attachments" multiple>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('createTicketForm').submit();">Create Ticket</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status update modals will be generated for each ticket -->
+{% for ticket in tickets %}
+<div class="modal fade" id="updateStatusModal{{ ticket.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Ticket #{{ ticket.id }} Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStatusForm{{ ticket.id }}" method="post" action="{% url 'core:technician_update_ticket' ticket.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="newStatus{{ ticket.id }}" class="form-label">Status</label>
+                        <select class="form-select" id="newStatus{{ ticket.id }}" name="status" required>
+                            <option value="new" {% if ticket.status == 'new' %}selected{% endif %}>New</option>
+                            <option value="in-progress" {% if ticket.status == 'in-progress' %}selected{% endif %}>In Progress</option>
+                            <option value="on-hold" {% if ticket.status == 'on-hold' %}selected{% endif %}>On Hold</option>
+                            <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statusNote{{ ticket.id }}" class="form-label">Note</label>
+                        <textarea class="form-control" id="statusNote{{ ticket.id }}" name="note" rows="3" placeholder="Add a note about this status change"></textarea>
+                    </div>
+                    <input type="hidden" name="action" value="update_status">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('updateStatusForm{{ ticket.id }}').submit();">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select All Checkbox
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const ticketCheckboxes = document.querySelectorAll('.ticket-checkbox');
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                ticketCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+        }
+        
+        // Ticket Search
+        const searchInput = document.getElementById('ticketSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('.tickets-table tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        }
+        
+        // Filter Buttons
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active state
+                const parentGroup = this.closest('.filter-btn-group');
+                parentGroup.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Apply filters
+                applyFilters();
+            });
+        });
+        
+        // Table Sorting
+        const sortableHeaders = document.querySelectorAll('.tickets-table th[data-sort]');
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', function() {
+                const column = this.getAttribute('data-sort');
+                const currentDirection = this.getAttribute('data-direction') || 'asc';
+                const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+                
+                // Reset all headers
+                document.querySelectorAll('.tickets-table th').forEach(th => {
+                    th.removeAttribute('data-direction');
+                    const icon = th.querySelector('i');
+                    if (icon) icon.className = 'fas fa-sort';
+                });
+                
+                // Update this header
+                this.setAttribute('data-direction', newDirection);
+                const icon = this.querySelector('i');
+                if (icon) {
+                    icon.className = newDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+                }
+                
+                sortTable(column, newDirection);
+            });
+        });
+        
+        // Action Buttons
+        document.querySelectorAll('[data-action="mark-resolved"]').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const ticketId = this.getAttribute('data-ticket-id');
+                if (confirm('Are you sure you want to mark this ticket as resolved?')) {
+                    // Here you would normally submit a form or make an AJAX request
+                    // For demonstration, let's just redirect
+                    window.location.href = `/technician/tickets/${ticketId}/resolve/`;
+                }
+            });
+        });
+        
+        document.querySelectorAll('[data-action="close-ticket"]').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const ticketId = this.getAttribute('data-ticket-id');
+                if (confirm('Are you sure you want to close this ticket?')) {
+                    // Here you would normally submit a form or make an AJAX request
+                    // For demonstration, let's just redirect
+                    window.location.href = `/technician/tickets/${ticketId}/close/`;
+                }
+            });
+        });
+    });
+    
+    function applyFilters() {
+        const statusFilter = document.querySelector('.filter-btn-group:nth-child(1) .filter-btn.active').getAttribute('data-filter');
+        const priorityFilter = document.querySelector('.filter-btn-group:nth-child(2) .filter-btn.active').getAttribute('data-filter');
+        const rows = document.querySelectorAll('.tickets-table tbody tr');
+        
+        rows.forEach(row => {
+            const status = row.getAttribute('data-status');
+            const priority = row.getAttribute('data-priority');
+            
+            let statusMatch = statusFilter === 'all' || status === statusFilter;
+            let priorityMatch = priorityFilter === 'all' || priority === priorityFilter;
+            
+            row.style.display = statusMatch && priorityMatch ? '' : 'none';
+        });
+    }
+    
+    function sortTable(column, direction) {
+        const tbody = document.querySelector('.tickets-table tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        // Sort the rows
+        rows.sort((a, b) => {
+            let aValue = a.querySelector(`td:nth-child(${getColumnIndex(column)})`).textContent.trim();
+            let bValue = b.querySelector(`td:nth-child(${getColumnIndex(column)})`).textContent.trim();
+            
+            // Parse as numbers if possible
+            if (!isNaN(aValue) && !isNaN(bValue)) {
+                aValue = parseFloat(aValue);
+                bValue = parseFloat(bValue);
+            }
+            
+            // Compare
+            if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+        
+        // Reattach rows in new order
+        rows.forEach(row => tbody.appendChild(row));
+    }
+    
+    function getColumnIndex(columnName) {
+        // Map column names to indices
+        const columnMap = {
+            'id': 2, // Accounting for the checkbox column
+            'subject': 3,
+            'customer': 4,
+            'status': 5,
+            'priority': 6,
+            'created': 7,
+            'updated': 8
+        };
+        
+        return columnMap[columnName] || 0;
+    }
+</script>
+{% endblock %} 

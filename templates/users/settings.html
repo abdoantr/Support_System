@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Settings - Support System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h1 class="h2 mb-4">Settings</h1>
+
+    <div class="row">
+        <div class="col-12 col-lg-3">
+            <!-- Settings Navigation -->
+            <div class="card mb-4 mb-lg-0">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" role="tablist">
+                        <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#notifications">
+                            <i class="fas fa-bell me-2"></i> Notifications
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#preferences">
+                            <i class="fas fa-cog me-2"></i> Preferences
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#appearance">
+                            <i class="fas fa-paint-brush me-2"></i> Appearance
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#privacy">
+                            <i class="fas fa-shield-alt me-2"></i> Privacy
+                        </a>
+                        {% if user.is_staff %}
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#system">
+                            <i class="fas fa-server me-2"></i> System Settings
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Content -->
+        <div class="col-12 col-lg-9">
+            <div class="card">
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- Notifications Settings -->
+                        <div class="tab-pane fade show active" id="notifications">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Notification Settings</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="notificationsForm" method="post" action="{% url 'core:update_notification_settings' %}" data-ajax>
+                                        {% csrf_token %}
+                                        <h6 class="mb-3">Email Notifications</h6>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="newTicket" name="new_ticket" 
+                                                       {% if settings.notifications.new_ticket %}checked{% endif %}>
+                                                <label class="form-check-label" for="newTicket">New ticket assignments</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="ticketUpdate" name="ticket_update"
+                                                       {% if settings.notifications.ticket_update %}checked{% endif %}>
+                                                <label class="form-check-label" for="ticketUpdate">Ticket updates and comments</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="ticketResolved" name="ticket_resolved"
+                                                       {% if settings.notifications.ticket_resolved %}checked{% endif %}>
+                                                <label class="form-check-label" for="ticketResolved">Ticket resolution</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <h6 class="mb-3 mt-4">System Notifications</h6>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="browserNotif" name="browser_notifications"
+                                                       {% if settings.notifications.browser_notifications %}checked{% endif %}>
+                                                <label class="form-check-label" for="browserNotif">Browser notifications</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="soundNotif" name="sound_notifications"
+                                                       {% if settings.notifications.sound_notifications %}checked{% endif %}>
+                                                <label class="form-check-label" for="soundNotif">Sound notifications</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        <button type="button" class="reset-settings-btn" onclick="resetSettings('notifications')">Reset to defaults</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferences Settings -->
+                        <div class="tab-pane fade" id="preferences">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Preferences</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="preferencesForm" method="post" action="{% url 'core:update_preferences' %}" data-ajax>
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label class="form-label">Default Dashboard View</label>
+                                            <select class="form-select" name="default_view">
+                                                <option value="tickets" {% if settings.preferences.default_view == 'tickets' %}selected{% endif %}>Tickets</option>
+                                                <option value="statistics" {% if settings.preferences.default_view == 'statistics' %}selected{% endif %}>Statistics</option>
+                                                <option value="calendar" {% if settings.preferences.default_view == 'calendar' %}selected{% endif %}>Calendar</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Items per Page</label>
+                                            <select class="form-select" name="items_per_page">
+                                                <option value="10" {% if settings.preferences.items_per_page == 10 %}selected{% endif %}>10</option>
+                                                <option value="25" {% if settings.preferences.items_per_page == 25 %}selected{% endif %}>25</option>
+                                                <option value="50" {% if settings.preferences.items_per_page == 50 %}selected{% endif %}>50</option>
+                                                <option value="100" {% if settings.preferences.items_per_page == 100 %}selected{% endif %}>100</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Time Zone</label>
+                                            <select class="form-select" name="timezone">
+                                                {% for tz in available_timezones %}
+                                                <option value="{{ tz }}" {% if settings.preferences.timezone == tz %}selected{% endif %}>{{ tz }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        <button type="button" class="reset-settings-btn" onclick="resetSettings('preferences')">Reset to defaults</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appearance Settings -->
+                        <div class="tab-pane fade" id="appearance">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Appearance</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="appearanceForm" method="post" action="{% url 'core:update_appearance' %}" data-ajax>
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label class="form-label">Theme</label>
+                                            <select class="form-select" name="theme" onchange="updateThemePreview(this.value)">
+                                                <option value="light" {% if settings.appearance.theme == 'light' %}selected{% endif %}>Light</option>
+                                                <option value="dark" {% if settings.appearance.theme == 'dark' %}selected{% endif %}>Dark</option>
+                                                <option value="auto" {% if settings.appearance.theme == 'auto' %}selected{% endif %}>System Default</option>
+                                            </select>
+                                            <!-- Theme preview will be inserted here by JavaScript -->
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Accent Color</label>
+                                            <div class="d-flex gap-2">
+                                                {% for color in available_colors %}
+                                                <div class="form-check">
+                                                    <input class="form-check-input accent-color-input" 
+                                                           type="radio" 
+                                                           name="accent_color" 
+                                                           value="{{ color }}" 
+                                                           id="color{{ color }}"
+                                                           {% if settings.appearance.accent_color == color %}checked{% endif %}>
+                                                    <label class="form-check-label" for="color{{ color }}">
+                                                        {{ color|title }}
+                                                    </label>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Font Size</label>
+                                            <select class="form-select" name="font_size">
+                                                <option value="small" {% if settings.appearance.font_size == 'small' %}selected{% endif %}>Small</option>
+                                                <option value="medium" {% if settings.appearance.font_size == 'medium' %}selected{% endif %}>Medium</option>
+                                                <option value="large" {% if settings.appearance.font_size == 'large' %}selected{% endif %}>Large</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        <button type="button" class="reset-settings-btn" onclick="resetSettings('appearance')">Reset to defaults</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Settings -->
+                        <div class="tab-pane fade" id="privacy">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Privacy Settings</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="privacyForm" method="post" action="{% url 'core:update_privacy' %}" data-ajax>
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showOnline" name="show_online_status"
+                                                       {% if settings.privacy.show_online_status %}checked{% endif %}>
+                                                <label class="form-check-label" for="showOnline">Show online status</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showActivity" name="show_activity"
+                                                       {% if settings.privacy.show_activity %}checked{% endif %}>
+                                                <label class="form-check-label" for="showActivity">Show activity status</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showEmail" name="show_email"
+                                                       {% if settings.privacy.show_email %}checked{% endif %}>
+                                                <label class="form-check-label" for="showEmail">Show email to other users</label>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        <button type="button" class="reset-settings-btn" onclick="resetSettings('privacy')">Reset to defaults</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Settings (Admin Only) -->
+                        {% if user.is_staff %}
+                        <div class="tab-pane fade" id="system">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">System Settings</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="systemForm" method="post" action="{% url 'core:update_system_settings' %}" data-ajax>
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label class="form-label">Auto-assign Tickets</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="autoAssign" name="auto_assign"
+                                                       {% if settings.system.auto_assign %}checked{% endif %}>
+                                                <label class="form-check-label" for="autoAssign">Enable automatic ticket assignment</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Default Due Date (days)</label>
+                                            <input type="number" class="form-control" name="default_due_date"
+                                                   value="{{ settings.system.default_due_date }}" min="1">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Email Settings</label>
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="emailEnabled" name="email_enabled"
+                                                       {% if settings.system.email_enabled %}checked{% endif %}>
+                                                <label class="form-check-label" for="emailEnabled">Enable email notifications</label>
+                                            </div>
+                                            <input type="email" class="form-control mb-2" name="system_email"
+                                                   value="{{ settings.system.system_email }}" placeholder="System email address">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        <button type="button" class="reset-settings-btn" onclick="resetSettings('system')">Reset to defaults</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/settings.js' %}"></script>
+{% endblock %}

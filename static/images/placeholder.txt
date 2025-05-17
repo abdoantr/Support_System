@@ -1,0 +1,14 @@
+This directory should contain your site images.
+
+Recommended files to add:
+- logo.svg or logo.png (site logo in vector format if possible)
+- favicon.ico (site favicon)
+- hero-bg.jpg (background image for hero sections)
+- placeholder.jpg (placeholder for when images fail to load)
+- user-avatar.jpg (default user avatar)
+
+You may also want to organize images in subdirectories:
+- /icons/ (for UI icons)
+- /backgrounds/ (for background images)
+- /services/ (for service-related images)
+- /team/ (for team member photos) 

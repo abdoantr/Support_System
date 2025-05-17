@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to Support System</title>
+</head>
+<body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #333;">Welcome to Support System!</h2>
+        <p>Hello {{ user.get_full_name|default:user.email }},</p>
+        <p>Thank you for joining our support system. We're excited to have you on board!</p>
+        <h3>Getting Started</h3>
+        <ul>
+            <li>Browse our available services</li>
+            <li>Create support tickets when you need assistance</li>
+            <li>Track your tickets and communicate with our technicians</li>
+            <li>Schedule appointments for on-site services</li>
+        </ul>
+        <p>If you have any questions, feel free to contact our support team.</p>
+        <p>Best regards,<br>Support System Team</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket Summary Report</title>
+</head>
+<body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #0d6efd;">📊 {{ period|title }} Ticket Summary</h2>
+        <p>Hello {{ user.get_full_name|default:user.email }},</p>
+        <p>Here's your {{ period }} ticket summary:</p>
+        
+        <div style="margin: 20px 0;">
+            <div style="background-color: #cfe2ff; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                <h3 style="margin: 0; color: #084298;">New Tickets</h3>
+                <p style="font-size: 24px; margin: 10px 0;">{{ new_tickets }}</p>
+            </div>
+            
+            <div style="background-color: #d1e7dd; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                <h3 style="margin: 0; color: #0f5132;">Closed Tickets</h3>
+                <p style="font-size: 24px; margin: 10px 0;">{{ closed_tickets }}</p>
+            </div>
+            
+            <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                <h3 style="margin: 0; color: #842029;">Overdue Tickets</h3>
+                <p style="font-size: 24px; margin: 10px 0;">{{ overdue_tickets }}</p>
+            </div>
+        </div>
+        
+        <p>You can view detailed reports by logging into the system.</p>
+        <p>Best regards,<br>Support System Team</p>
+    </div>
+</body>
+</html>

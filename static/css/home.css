@@ -1,0 +1,453 @@
+/* Import Variables */
+@import url('variables.css');
+
+/* Hero Section Styles */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.8s ease-out;
+    color: var(--text-light);
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("../img/pattern.svg") center/cover;
+    opacity: 0.1;
+    animation: scaleIn 1s ease-out;
+}
+
+.hero-section h1 {
+    color: var(--text-light);
+    animation: slideInLeft 0.8s ease-out;
+}
+
+.hero-section p {
+    color: var(--neutral-200);
+    animation: slideInLeft 1s ease-out;
+}
+
+.hero-section .btn {
+    animation: slideInLeft 1.2s ease-out;
+}
+
+/* Stats Section Styles */
+.stats-section {
+    position: relative;
+    z-index: 1;
+    margin-top: -70px;
+}
+
+.stat-card {
+    background: var(--bg-light);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    animation: fadeIn 0.6s ease-out;
+    color: var(--text-dark);
+}
+
+.stat-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.stat-card .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-500) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card .stat-label {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Service Card Styles */
+.service-card {
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    background: var(--bg-light);
+    animation: fadeIn 0.6s ease-out;
+}
+
+.service-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.service-card img {
+    height: 200px;
+    object-fit: cover;
+    transition: all 0.4s ease;
+}
+
+.service-card:hover img {
+    transform: scale(1.05);
+}
+
+.service-card .card-body {
+    padding: 1.5rem;
+}
+
+.service-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.service-card .card-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Feature Section Styles */
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(13, 110, 253, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.feature-icon i {
+    font-size: 2rem;
+    color: #0d6efd;
+    transition: all 0.3s ease;
+}
+
+.feature-card {
+    padding: 2rem;
+    text-align: center;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.feature-card h3 {
+    color: var(--text-primary);
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+}
+
+.feature-card:hover .feature-icon {
+    background: #0d6efd;
+    transform: scale(1.1) rotate(360deg);
+}
+
+.feature-card:hover .feature-icon i {
+    color: white;
+}
+
+/* FAQ Section Styles */
+.accordion-item {
+    border: none;
+    background: none;
+    margin-bottom: 1rem;
+}
+
+.accordion-button {
+    background-color: var(--bg-light);
+    border: none;
+    box-shadow: none;
+    padding: 1.25rem;
+    font-weight: 500;
+    border-radius: 10px !important;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+}
+
+.accordion-button:not(.collapsed) {
+    color: var(--primary-600);
+    background: var(--primary-50);
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(13, 110, 253, 0.1);
+}
+
+.accordion-button::after {
+    background-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.accordion-body {
+    padding: 1.25rem;
+    background-color: var(--bg-light);
+    border-radius: 0 0 10px 10px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* CTA Section Styles */
+.cta-section {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.8s ease-out;
+    color: var(--text-light);
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("../img/pattern.svg") center/cover;
+    opacity: 0.1;
+    animation: scaleIn 1s ease-out;
+}
+
+.cta-section h2 {
+    color: var(--text-light);
+}
+
+.cta-section p {
+    color: var(--neutral-200);
+}
+
+/* Button Styles */
+.btn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn:hover::after {
+    width: 300%;
+    height: 300%;
+}
+
+.btn-primary {
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+/* Quick Access Cards */
+.quick-access .card {
+    border: none;
+    border-radius: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: var(--bg-light);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.quick-access .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.quick-access .icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background: var(--primary-50);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.quick-access .icon-wrapper i {
+    font-size: 2rem;
+    color: var(--primary-600);
+}
+
+.quick-access .card-title {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin: 1rem 0;
+}
+
+.quick-access .card-text {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .quick-access .icon-wrapper {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .quick-access .icon-wrapper i {
+        font-size: 1.5rem;
+    }
+    
+    .quick-access .card-title {
+        font-size: 1.25rem;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .service-card {
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .hero-section {
+        text-align: center;
+        padding: 4rem 0;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .stats-section {
+        margin-top: -50px;
+    }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+    
+    .feature-card {
+        margin-bottom: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-section p {
+        font-size: 1rem;
+    }
+    
+    .stat-card .stat-number {
+        font-size: 2rem;
+    }
+    
+    .service-card img {
+        height: 160px;
+    }
+    
+    .feature-icon {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .feature-icon i {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-card {
+        text-align: center;
+    }
+    
+    .accordion-button {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* Hero section styles */
+.hero {
+    position: relative;
+    background-color: var(--light);
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: url('../img/pattern.svg');
+    background-size: cover;
+    opacity: 0.05;
+    z-index: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero img {
+    max-width: 100%;
+    height: auto;
+    transition: transform 0.5s ease;
+}
+
+.hero img:hover {
+    transform: translateY(-10px);
+}
+
+@media (max-width: 991.98px) {
+    .hero .col-lg-6:first-child {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .hero .d-md-flex {
+        justify-content: center !important;
+    }
+    
+    .hero .btn {
+        margin-bottom: 0.5rem;
+    }
+}

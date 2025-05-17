@@ -1,0 +1,448 @@
+/* 
+ * Technician Portal CSS
+ * Main stylesheet for the Support System Technician Portal
+ */
+
+/* ======= General Styles ======= */
+.text-gray-800 {
+    color: #2d3748;
+}
+
+.text-gray-600 {
+    color: #4a5568;
+}
+
+.font-weight-bold {
+    font-weight: 700;
+}
+
+/* ======= Card Styles ======= */
+.ticket-detail-card,
+.filter-card,
+.tickets-card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.tickets-card:hover {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.card-header.bg-light {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* ======= Status and Priority Badges ======= */
+.status-badge, 
+.priority-badge {
+    padding: 0.35em 0.65em;
+    border-radius: 0.25rem;
+    font-size: 0.75em;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.status-badge:hover, 
+.priority-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Status colors */
+.status-new { background-color: #e1f5fe; color: #0288d1; }
+.status-in-progress { background-color: #fff8e1; color: #ffa000; }
+.status-on-hold { background-color: #f3e5f5; color: #7b1fa2; }
+.status-resolved { background-color: #e8f5e9; color: #2e7d32; }
+.status-closed { background-color: #f5f5f5; color: #616161; }
+
+/* Priority colors */
+.priority-low { background-color: #e8f5e9; color: #2e7d32; }
+.priority-medium { background-color: #fff8e1; color: #ffa000; }
+.priority-high { background-color: #ffebee; color: #c62828; }
+.priority-urgent { background-color: #b71c1c; color: white; }
+
+/* ======= Stat Cards ======= */
+.stat-card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.stat-card.primary { background: linear-gradient(135deg, #4e73df, #3755c2); }
+.stat-card.success { background: linear-gradient(135deg, #1cc88a, #169969); }
+.stat-card.warning { background: linear-gradient(135deg, #f6c23e, #d9a420); }
+.stat-card.danger { background: linear-gradient(135deg, #e74a3b, #c23321); }
+
+.stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* ======= Ticket Meta Information ======= */
+.ticket-meta {
+    padding: 1rem;
+    background-color: #f8f9fc;
+    border-radius: 0.5rem;
+}
+
+.ticket-meta-item {
+    margin-bottom: 0.75rem;
+}
+
+.ticket-meta-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #4e73df;
+}
+
+.ticket-meta-value {
+    font-size: 0.9rem;
+}
+
+.ticket-description {
+    white-space: pre-line;
+    padding: 1.5rem;
+    background-color: #f8f9fc;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* ======= Timeline and Activity ======= */
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 0.6rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e3e6f0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -2rem;
+    top: 0.25rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #4e73df;
+}
+
+.timeline-item.status-change::before {
+    background-color: #f6c23e;
+}
+
+.timeline-item.assignment::before {
+    background-color: #36b9cc;
+}
+
+.timeline-item.comment::before {
+    background-color: #1cc88a;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.timeline-timestamp {
+    font-size: 0.8rem;
+    color: #858796;
+}
+
+.timeline-content {
+    background-color: #f8f9fc;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.activity-item {
+    border-left: 3px solid #4e73df;
+    padding-left: 15px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.activity-item::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #4e73df;
+}
+
+.activity-timestamp {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* ======= Comment Styles ======= */
+.comment-author {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.comment-author-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    background-color: #4e73df;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+/* ======= Attachment Styles ======= */
+.attachment-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: #f8f9fc;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.attachment-item:hover {
+    background-color: #eaecf4;
+}
+
+.attachment-icon {
+    margin-right: 0.75rem;
+    color: #4e73df;
+    font-size: 1.2rem;
+}
+
+.attachment-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.attachment-meta {
+    font-size: 0.8rem;
+    color: #858796;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.attachment-download {
+    margin-left: 0.75rem;
+    color: #4e73df;
+}
+
+/* ======= Table Styles ======= */
+.tickets-table th {
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.tickets-table th:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+
+.tickets-table th i {
+    margin-left: 5px;
+    opacity: 0.6;
+}
+
+.tickets-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.tickets-table tbody tr:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+.ticket-list-item {
+    transition: background-color 0.2s ease;
+}
+
+.ticket-list-item:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+
+/* ======= Filter & Search Elements ======= */
+.filter-btn-group .btn {
+    margin-right: 0.25rem;
+    margin-bottom: 0.5rem;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+}
+
+.filter-btn-group .btn:hover {
+    transform: translateY(-1px);
+}
+
+.filter-btn-group .btn.active {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.search-input-group {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.search-input-group input {
+    border-right: none;
+}
+
+.search-input-group .btn {
+    border-left: none;
+    background-color: white;
+}
+
+/* ======= Pagination Styles ======= */
+.tickets-pagination .page-item .page-link {
+    border-radius: 0.25rem;
+    margin: 0 0.15rem;
+}
+
+.tickets-pagination .page-item.active .page-link {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+/* ======= Empty State Styles ======= */
+.empty-state {
+    padding: 3rem;
+    text-align: center;
+    background-color: #f8f9fc;
+    border-radius: 0.35rem;
+    transition: all 0.2s ease;
+}
+
+.empty-state:hover {
+    background-color: #f1f3f9;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #d1d3e2;
+    margin-bottom: 1.5rem;
+}
+
+/* ======= Dropdown and Action Buttons ======= */
+.action-dropdown .dropdown-item {
+    padding: 0.5rem 1rem;
+}
+
+.action-dropdown .dropdown-item i {
+    margin-right: 0.5rem;
+    width: 1rem;
+    text-align: center;
+}
+
+.quick-actions .btn {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ======= Performance Chart ======= */
+.performance-chart {
+    height: 300px;
+}
+
+/* ======= Animations ======= */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+.float-animation {
+    animation: float 4s ease-in-out infinite;
+}
+
+/* ======= Responsive Adjustments ======= */
+@media (max-width: 768px) {
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+    
+    .filter-btn-group .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline {
+        padding-left: 1.5rem;
+    }
+    
+    .timeline-item::before {
+        left: -1.5rem;
+    }
+} 

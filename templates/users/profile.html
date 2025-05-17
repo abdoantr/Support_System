@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile - Support System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<style>
+    .stats-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .stats-card.primary {
+        background: linear-gradient(45deg, #4e73df 0%, #6f86d6 100%);
+        color: white;
+    }
+    .stats-card.success {
+        background: linear-gradient(45deg, #1cc88a 0%, #38d39f 100%);
+        color: white;
+    }
+    .stats-card.warning {
+        background: linear-gradient(45deg, #f6c23e 0%, #f8d35c 100%);
+        color: white;
+    }
+    .stats-card.danger {
+        background: linear-gradient(45deg, #e74a3b 0%, #ef6f64 100%);
+        color: white;
+    }
+    .stats-card.info {
+        background: linear-gradient(45deg, #36b9cc 0%, #4cc9d9 100%);
+        color: white;
+    }
+    .avatar-placeholder {
+        width: 150px; 
+        height: 150px;
+        font-size: 3rem;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 15px;
+        height: 100%;
+        width: 2px;
+        background: #e9ecef;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 25px;
+    }
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #4e73df;
+        margin-top: 5px;
+    }
+    .timeline-item.comment .timeline-marker {
+        background: #1cc88a;
+    }
+    .timeline-content {
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .profile-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-right: 5px;
+        background: #e9ecef;
+    }
+    .profile-badge i {
+        margin-right: 5px;
+    }
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+    }
+    .user-info-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        color: #4e73df;
+        margin-right: 15px;
+    }
+    .user-info-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .user-info-content {
+        flex: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <div class="position-relative mb-3">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="Profile Picture" 
+                                 class="rounded-circle img-fluid" style="width: 150px;">
+                        {% else %}
+                            <div class="avatar-placeholder rounded-circle bg-primary text-white mx-auto d-flex align-items-center justify-content-center">
+                                {{ user.get_initials }}
+                            </div>
+                        {% endif %}
+                        <button class="btn btn-sm btn-primary position-absolute bottom-0 end-0"
+                                onclick="document.getElementById('profilePicture').click()">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <form id="profilePictureForm" style="display: none;">
+                            <input type="file" id="profilePicture" name="profile_picture" 
+                                   accept="image/*" onchange="updateProfilePicture(this)">
+                        </form>
+                    </div>
+                    <h4 class="mb-1">{{ user.get_full_name }}</h4>
+                    <p class="text-muted mb-3">
+                        <span class="badge bg-primary">{{ user.role }}</span>
+                    </p>
+                    
+                    {% if user.date_joined %}
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-calendar-check"></i> Member since 
+                        {{ user.date_joined|date:"F j, Y" }}
+                    </p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-center mb-2">
+                        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="fas fa-key"></i> Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-address-card me-2"></i>Contact Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="user-info-row">
+                        <div class="user-info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="user-info-content">
+                            <div class="small text-muted">Email</div>
+                            <div>{{ user.email }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-info-row">
+                        <div class="user-info-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="user-info-content">
+                            <div class="small text-muted">Phone</div>
+                            <div>{{ user.phone|default:"Not provided" }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-info-row">
+                        <div class="user-info-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="user-info-content">
+                            <div class="small text-muted">Department</div>
+                            <div>
+                                {% if user.profile.department %}
+                                    {{ user.profile.department }}
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User Status Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Support Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-muted mb-2">Resolution Rate</label>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>{{ resolution_rate }}%</span>
+                            <small class="text-muted">{{ resolved_tickets }} of {{ total_tickets }}</small>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ resolution_rate }}%"
+                                 aria-valuenow="{{ resolution_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted mb-2">Average Response Time</label>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <span class="h5 mb-0">{{ avg_response_time }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <label class="text-muted mb-2">Average Ticket Age</label>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-calendar-day text-warning me-2"></i>
+                            <span class="h5 mb-0">{{ avg_ticket_age_days }} days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity and Statistics -->
+        <div class="col-lg-8">
+            <!-- Statistics -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Activity Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="stats-card primary h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-ticket-alt fa-2x mb-3"></i>
+                                    <h6 class="text-white-50 mb-2">Total Tickets</h6>
+                                    <h2 class="mb-0">{{ total_tickets }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stats-card success h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-check-circle fa-2x mb-3"></i>
+                                    <h6 class="text-white-50 mb-2">Resolved</h6>
+                                    <h2 class="mb-0">{{ resolved_tickets }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stats-card warning h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-spinner fa-2x mb-3"></i>
+                                    <h6 class="text-white-50 mb-2">Open Tickets</h6>
+                                    <h2 class="mb-0">{{ open_tickets }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for activity in recent_activities %}
+                        <div class="timeline-item {% if activity.type == 'comment_received' %}comment{% endif %}">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">
+                                    {% if activity.type == 'ticket_created' %}
+                                        <i class="fas fa-plus-circle text-primary me-1"></i>
+                                    {% elif activity.type == 'comment_received' %}
+                                        <i class="fas fa-comment text-success me-1"></i>
+                                    {% else %}
+                                        <i class="fas fa-exclamation-circle text-warning me-1"></i>
+                                    {% endif %}
+                                    {{ activity.title }}
+                                </h6>
+                                <p class="mb-0 text-muted">{{ activity.description }}</p>
+                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No recent activity</p>
+                            <a href="{% url 'core:ticket_create' %}" class="btn btn-sm btn-primary">Create your first ticket</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="profileForm" method="post" action="{% url 'core:update_profile' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstName" name="first_name" 
+                               value="{{ user.first_name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastName" name="last_name" 
+                               value="{{ user.last_name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" name="phone_number" 
+                               value="{{ user.phone_number }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="department" class="form-label">Department</label>
+                        <input type="text" class="form-control" id="department" name="department" 
+                               value="{{ user.department }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Password Change Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">
+                    <i class="fas fa-key me-2"></i>Change Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="passwordChangeForm" method="post" onsubmit="handlePasswordChange(event)">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password1" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password1" name="new_password1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password2" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="new_password2" name="new_password2" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/profile.js' %}"></script>
+{% endblock %}

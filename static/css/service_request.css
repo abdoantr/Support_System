@@ -1,0 +1,181 @@
+/* Request Header Styles */
+.request-header {
+    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--primary-800) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.request-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('../img/pattern.svg') center/cover;
+    opacity: 0.1;
+}
+
+/* Form Card Styles */
+.form-card {
+    background: var(--bg-light);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Section Styles */
+.form-section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.form-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.form-section h3 {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+/* Form Control Styles */
+.form-label {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-400);
+    box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+.form-text {
+    color: var(--text-tertiary);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+/* File Input Styles */
+input[type="file"].form-control {
+    padding: 0.5rem 1rem;
+}
+
+input[type="file"].form-control::file-selector-button {
+    padding: 0.5rem 1rem;
+    margin-right: 1rem;
+    border: none;
+    border-radius: 6px;
+    background: var(--primary-50);
+    color: var(--primary-600);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="file"].form-control::file-selector-button:hover {
+    background: var(--primary-100);
+}
+
+/* Checkbox Styles */
+.form-check {
+    margin-bottom: 1rem;
+}
+
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    margin-top: 0.15em;
+    background-color: var(--bg-light);
+    border: 2px solid var(--border-dark);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-600);
+    border-color: var(--primary-600);
+}
+
+.form-check-label {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.form-check-label a {
+    color: var(--primary-600);
+    text-decoration: none;
+}
+
+.form-check-label a:hover {
+    text-decoration: underline;
+}
+
+/* Submit Button Styles */
+.btn-primary {
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Modal Styles */
+.modal-content {
+    background: var(--bg-light);
+    border: none;
+    border-radius: 12px;
+}
+
+.modal-header {
+    border-bottom-color: var(--border-light);
+    padding: 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    color: var(--text-primary);
+}
+
+.modal-footer {
+    border-top-color: var(--border-light);
+    padding: 1.5rem;
+}
+
+.modal-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .form-card {
+        padding: 1.5rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+    }
+    
+    .btn-primary {
+        width: 100%;
+    }
+}
