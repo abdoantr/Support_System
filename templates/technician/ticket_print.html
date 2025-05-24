@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket #{{ ticket.id }}</title>
+    <style>
+        @media print {
+            body {
+                background: white;
+                font-size: 12pt;
+                margin: 0;
+                padding: 20px;
+            }
+            .no-print {
+                display: none !important;
+            }
+            @page {
+                margin: 2cm;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+        }
+        
+        .ticket-header {
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+        
+        .ticket-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .meta-item {
+            margin-bottom: 10px;
+        }
+        
+        .meta-label {
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .ticket-content {
+            margin: 20px 0;
+        }
+        
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 20px 0 10px;
+            color: #444;
+        }
+        
+        .comment {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 10pt;
+            margin-bottom: 5px;
+        }
+        
+        .print-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10pt;
+        }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10pt;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button onclick="window.print()">Print Ticket</button>
+        <button onclick="window.close()">Close</button>
+    </div>
+
+    <div class="ticket-header">
+        <h1>Ticket #{{ ticket.id }}</h1>
+        <h3>{{ ticket.title }}</h3>
+    </div>
+
+    <div class="ticket-meta">
+        <div class="meta-item">
+            <div class="meta-label">Status</div>
+            <div>{{ ticket.get_status_display }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Priority</div>
+            <div>{{ ticket.get_priority_display }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Created By</div>
+            <div>{{ ticket.created_by.get_full_name }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Created On</div>
+            <div>{{ ticket.created_at|date:"M d, Y H:i" }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Assigned To</div>
+            <div>{{ ticket.assigned_to.get_full_name|default:"Unassigned" }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Last Updated</div>
+            <div>{{ ticket.updated_at|date:"M d, Y H:i" }}</div>
+        </div>
+    </div>
+
+    <div class="ticket-content">
+        <div class="section-title">Description</div>
+        <div>{{ ticket.description|linebreaks }}</div>
+    </div>
+
+    {% if comments %}
+    <div class="comments-section">
+        <div class="section-title">Comments</div>
+        {% for comment in comments %}
+        <div class="comment">
+            <div class="comment-header">
+                <span>{{ comment.author.get_full_name }}</span>
+                <span>{{ comment.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+            <div>{{ comment.content|linebreaks }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if attachments %}
+    <div class="attachments-section">
+        <div class="section-title">Attachments</div>
+        <ul>
+            {% for attachment in attachments %}
+            <li>{{ attachment.file.name|cut:"ticket_attachments/" }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="print-footer">
+        <p>Printed on {{ now|date:"F d, Y" }}</p>
+    </div>
+</body>
+</html>

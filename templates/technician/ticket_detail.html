@@ -320,7 +320,7 @@
                         <i class="fas fa-exclamation-triangle me-1"></i> Escalate
                     </a>
                     
-                    <a href="{% url 'core:technician_print_ticket' ticket.id %}" class="btn btn-light" target="_blank">
+                    <a href="{% url 'core:technician_print_ticket' ticket.id %}" class="btn btn-light" onclick="window.open(this.href,'_blank','width=800,height=600'); return false;">
                         <i class="fas fa-print me-1"></i> Print
                     </a>
                 </div>

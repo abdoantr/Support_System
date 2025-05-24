@@ -1766,44 +1766,121 @@ def technician_create_ticket(request):
     return render(request, 'technician/create_ticket.html', context)
 
 @login_required
-@user_passes_test(is_technician)
 def technician_update_ticket(request, ticket_id):
+    if not is_technician(request.user):
+        messages.error(request, "Access denied. You must be a technician to update tickets.")
+        return redirect('core:dashboard')
+
     ticket = get_object_or_404(Ticket, id=ticket_id)
     
     if request.method == 'POST':
+        # Get form data
         status = request.POST.get('status')
         priority = request.POST.get('priority')
-        resolution = request.POST.get('resolution')
+        note = request.POST.get('note')
+        notify_user = request.POST.get('notify_user', 'off') == 'on'
         
+        # Create comment if note provided
+        if note:
+            Comment.objects.create(
+                ticket=ticket,
+                author=request.user,
+                content=note,
+                is_internal=not notify_user
+            )
+        
+        # Update ticket fields
         if status:
+            old_status = ticket.status
             ticket.status = status
-        if priority:
-            ticket.priority = priority
-        if resolution:
-            ticket.resolution = resolution
             if status == 'resolved':
                 ticket.resolved_at = timezone.now()
+            # Log status change
+            logger.info(f"Ticket #{ticket.id} status changed from {old_status} to {status}")
         
+        if priority:
+            ticket.priority = priority
+        
+        ticket.updated_at = timezone.now()
         ticket.save()
+        
+        if notify_user and status != ticket.status:
+            try:
+                # Send email notification to user
+                subject = f'Ticket #{ticket.id} Status Update'
+                message = f'''
+                Your ticket has been updated:
+                
+                Status: {ticket.get_status_display()}
+                
+                {note if note else ''}
+                
+                View ticket: http://{request.get_host()}/tickets/{ticket.id}/
+                '''
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [ticket.created_by.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.error(f"Failed to send notification email: {str(e)}")
+        
         messages.success(request, 'Ticket updated successfully.')
     
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
 @login_required
-@user_passes_test(is_technician)
 def technician_resolve_ticket(request, ticket_id):
+    if not is_technician(request.user):
+        messages.error(request, "Access denied. You must be a technician to resolve tickets.")
+        return redirect('core:dashboard')
+
     ticket = get_object_or_404(Ticket, id=ticket_id)
     
     if request.method == 'POST':
         resolution = request.POST.get('resolution')
+        notify_user = request.POST.get('notify_user', 'off') == 'on'
+        
         if not resolution:
             messages.error(request, 'Please provide a resolution summary.')
             return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
         
+        # Update ticket status
         ticket.status = 'resolved'
         ticket.resolution = resolution
         ticket.resolved_at = timezone.now()
         ticket.save()
+        
+        # Create resolution comment
+        comment = Comment.objects.create(
+            ticket=ticket,
+            author=request.user,
+            content=f"Ticket resolved: {resolution}",
+            is_internal=False  # Resolution comments should be visible to users
+        )
+        
+        # Handle notification
+        if notify_user:
+            try:
+                subject = f'Ticket #{ticket.id} Resolved'
+                message = f'''
+                Your ticket has been resolved:
+
+                Resolution: {resolution}
+
+                View ticket: http://{request.get_host()}/tickets/{ticket.id}/
+                '''
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [ticket.created_by.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.error(f"Failed to send resolution notification: {str(e)}")
         
         messages.success(request, 'Ticket resolved successfully.')
     
@@ -1815,40 +1892,105 @@ def technician_close_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
     
     if request.method == 'POST':
+        note = request.POST.get('note', '')
         if ticket.status != 'resolved':
             messages.error(request, 'Only resolved tickets can be closed.')
             return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
         
         ticket.status = 'closed'
         ticket.save()
+
+        # Add closure note if provided
+        if note:
+            Comment.objects.create(
+                ticket=ticket,
+                author=request.user,
+                content=f"Ticket closed: {note}",
+                is_internal=False
+            )
+        
         messages.success(request, 'Ticket closed successfully.')
     
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
 @login_required
-@user_passes_test(is_technician)
 def technician_transfer_ticket(request, ticket_id):
+    if not is_technician(request.user):
+        messages.error(request, "Access denied. You must be a technician to transfer tickets.")
+        return redirect('core:dashboard')
+
     ticket = get_object_or_404(Ticket, id=ticket_id)
     
     if request.method == 'POST':
         technician_id = request.POST.get('technician')
+        transfer_note = request.POST.get('note', '')
+        notify_technician = request.POST.get('notify_technician', 'off') == 'on'
+        
         if not technician_id:
             messages.error(request, 'Please select a technician.')
             return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
         
         try:
             new_technician = User.objects.get(id=technician_id, role='technician')
+            old_technician = ticket.assigned_to
+            
+            # Update ticket assignment
             ticket.assigned_to = new_technician
             ticket.save()
+            
+            # Create transfer note
+            note_content = f"Ticket transferred from {old_technician.get_full_name() if old_technician else 'unassigned'} to {new_technician.get_full_name()}"
+            if transfer_note:
+                note_content += f"\nTransfer note: {transfer_note}"
+                
+            Comment.objects.create(
+                ticket=ticket,
+                author=request.user,
+                content=note_content,
+                is_internal=True  # Transfer notes are internal
+            )
+            
+            # Send notification to new technician
+            if notify_technician:
+                try:
+                    subject = f'Ticket #{ticket.id} Assigned to You'
+                    message = f'''
+                    A ticket has been transferred to you:
+
+                    Ticket: #{ticket.id} - {ticket.title}
+                    From: {old_technician.get_full_name() if old_technician else 'Unassigned'}
+                    Status: {ticket.get_status_display()}
+                    Priority: {ticket.get_priority_display()}
+                    
+                    {f"Note: {transfer_note}" if transfer_note else ""}
+
+                    View ticket: http://{request.get_host()}/technician/tickets/{ticket.id}/
+                    '''
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [new_technician.email],
+                        fail_silently=True,
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to send transfer notification: {str(e)}")
+            
             messages.success(request, f'Ticket transferred to {new_technician.get_full_name()}.')
+            logger.info(f"Ticket #{ticket.id} transferred to {new_technician.email}")
+            
         except User.DoesNotExist:
             messages.error(request, 'Selected technician not found.')
+            logger.error(f"Transfer failed - Technician not found: {technician_id}")
     
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
 @login_required
-@user_passes_test(is_technician)
 def technician_print_ticket(request, ticket_id):
+    if not is_technician(request.user):
+        messages.error(request, "Access denied. You must be a technician to print tickets.")
+        return redirect('core:dashboard')
+    
     ticket = get_object_or_404(Ticket.objects.select_related(
         'service', 'created_by', 'assigned_to'
     ), id=ticket_id)
@@ -1860,6 +2002,7 @@ def technician_print_ticket(request, ticket_id):
         'ticket': ticket,
         'comments': comments,
         'attachments': attachments,
+        'now': timezone.now(),
     }
     return render(request, 'technician/ticket_print.html', context)
 
@@ -1877,46 +2020,118 @@ def technician_assign_ticket(request, ticket_id):
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
 @login_required
-@user_passes_test(is_technician)
 def technician_escalate_ticket(request, ticket_id):
+    if not is_technician(request.user):
+        messages.error(request, "Access denied. You must be a technician to escalate tickets.")
+        return redirect('core:dashboard')
+
     ticket = get_object_or_404(Ticket, id=ticket_id)
     
     if request.method == 'POST':
         reason = request.POST.get('reason')
+        escalation_level = request.POST.get('level', 'level_2')
+        note = request.POST.get('note', '')
+        notify_managers = request.POST.get('notify_managers', 'off') == 'on'
+        
         if not reason:
             messages.error(request, 'Please provide an escalation reason.')
             return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
         
+        # Update ticket
+        old_priority = ticket.priority
         ticket.priority = 'urgent'
+        ticket.escalation_level = escalation_level
         ticket.save()
         
-        # Add a comment about the escalation
+        # Create escalation note
+        note_content = f"Ticket escalated\nReason: {reason}\nLevel: {escalation_level}"
+        if note:
+            note_content += f"\nAdditional notes: {note}"
+            
         Comment.objects.create(
             ticket=ticket,
             author=request.user,
-            content=f'Ticket escalated: {reason}'
+            content=note_content,
+            is_internal=True  # Escalation notes are internal
         )
         
+        # Notify managers if requested
+        if notify_managers:
+            try:
+                managers = User.objects.filter(is_staff=True, is_active=True)
+                if managers.exists():
+                    subject = f'Urgent: Ticket #{ticket.id} Escalated'
+                    message = f'''
+                    A ticket has been escalated:
+
+                    Ticket: #{ticket.id} - {ticket.title}
+                    Priority: {old_priority} → Urgent
+                    Escalation Level: {escalation_level}
+                    Reason: {reason}
+                    
+                    {f"Additional Notes: {note}" if note else ""}
+
+                    View ticket: http://{request.get_host()}/technician/tickets/{ticket.id}/
+                    '''
+                    
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [manager.email for manager in managers],
+                        fail_silently=True,
+                    )
+            except Exception as e:
+                logger.error(f"Failed to send escalation notification: {str(e)}")
+        
+        logger.info(f"Ticket #{ticket.id} escalated to {escalation_level} by {request.user.email}")
         messages.success(request, 'Ticket escalated successfully.')
     
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
 @login_required
-@user_passes_test(is_technician)
 def technician_add_comment(request, ticket_id):
+    if not is_technician(request.user):
+        messages.error(request, "Access denied. You must be a technician to add comments.")
+        return redirect('core:dashboard')
+
     ticket = get_object_or_404(Ticket, id=ticket_id)
     
     if request.method == 'POST':
         content = request.POST.get('content')
+        is_internal = request.POST.get('is_internal') == 'on'
+        
         if not content:
             messages.error(request, 'Please enter a comment.')
             return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
         
-        Comment.objects.create(
+        # Create the comment
+        comment = Comment.objects.create(
             ticket=ticket,
             author=request.user,
-            content=content
+            content=content,
+            is_internal=is_internal
         )
+        
+        # Handle attachments
+        if request.FILES.getlist('attachments'):
+            for file in request.FILES.getlist('attachments'):
+                if file.size > 5 * 1024 * 1024:  # 5MB limit
+                    messages.warning(request, f'File {file.name} exceeds 5MB size limit')
+                    continue
+                
+                TicketAttachment.objects.create(
+                    ticket=ticket,
+                    file=file,
+                    uploaded_by=request.user,
+                    comment=comment
+                )
+        
+        # Update ticket status if it's new
+        if ticket.status == 'new':
+            ticket.status = 'in_progress'
+            ticket.save()
+            messages.info(request, 'Ticket status updated to In Progress.')
         
         messages.success(request, 'Comment added successfully.')
     
@@ -2162,7 +2377,7 @@ def technician_create_article(request):
             new_category = request.POST.get('new_category')
             short_description = request.POST.get('short_description')
             content = request.POST.get('content')
-            tags_json = request.POST.get('tags', '[]')
+            tags = request.POST.get('tags', '[]')
             is_featured = bool(request.POST.get('is_featured'))
             status = request.POST.get('status', 'published')
             visibility = request.POST.get('visibility', 'public')
@@ -2187,13 +2402,19 @@ def technician_create_article(request):
                 category_id=category_id,
                 short_description=short_description,
                 content=content,
-                tags_json=tags_json,
                 is_featured=is_featured,
                 status=status,
                 visibility=visibility,
                 created_by=request.user,
                 updated_by=request.user
             )
+
+            # Handle tags
+            try:
+                article.tags = tags
+                article.save()
+            except Exception as e:
+                logger.error(f"Error setting tags for article {article.id}: {str(e)}")
             
             # Add related articles
             if related_articles_ids:

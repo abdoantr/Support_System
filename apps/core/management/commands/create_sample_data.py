@@ -347,11 +347,14 @@ class Command(BaseCommand):
                     category=category,
                     created_by=technician,
                     updated_by=technician,
-                    is_published=True,
                     is_featured=article_data['is_featured'],
-                    status='published',
-                    tags_json=json.dumps(article_data['tags'])
+                    visibility='public',
+                    status='published'
                 )
+    
+                # Handle tags separately
+                article.tags = json.dumps(article_data['tags'])
+                article.save()
 
             self.stdout.write(self.style.SUCCESS('Successfully created knowledge base articles'))
 
