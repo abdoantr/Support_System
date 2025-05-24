@@ -956,21 +956,61 @@ def tickets(request):
     """
     Display user's support tickets and handle new ticket creation.
     """
-    # Get user's tickets
-    user_tickets = Ticket.objects.filter(created_by=request.user).order_by('-created_at')
+    # Add extensive logging
+    logger.info("=== Tickets View ===")
+    logger.info(f"User authenticated: {request.user.is_authenticated}")
+    if request.user.is_authenticated:
+        logger.info(f"User email: {request.user.email}")
+        logger.info(f"User ID: {request.user.id}")
+
+    if not request.user.is_authenticated:
+        messages.error(request, 'Please log in to view your tickets.')
+        return redirect('core:login')
+
+    # Get user's tickets with related service info
+    user_tickets = Ticket.objects.select_related('service', 'created_by').filter(
+        created_by=request.user
+    ).order_by('-created_at')
+    
+    # Log detailed ticket information
+    logger.info(f"Total tickets found: {user_tickets.count()}")
+    for ticket in user_tickets:
+        logger.info(
+            f"Ticket #{ticket.id}: {ticket.title}\n"
+            f"  - Status: {ticket.status}\n"
+            f"  - Service: {ticket.service.name if ticket.service else 'No service'}\n"
+            f"  - Created: {ticket.created_at}\n"
+            f"  - Priority: {ticket.priority}"
+        )
     
     # Calculate counts for statistics cards
     resolved_tickets_count = user_tickets.filter(status='resolved').count()
     in_progress_tickets_count = user_tickets.filter(status='in_progress').count()
     new_tickets_count = user_tickets.filter(status='new').count()
     
+    services = Service.objects.filter(is_active=True)
+    
+    # Log tickets and services for debugging
+    logger.info("=== Available Services ===")
+    for service in services:
+        logger.info(f"Service: {service.name} (ID: {service.id})")
+
     context = {
         'tickets': user_tickets,
-        'services': Service.objects.all(),
+        'services': services,
         'resolved_tickets_count': resolved_tickets_count,
         'in_progress_tickets_count': in_progress_tickets_count,
         'new_tickets_count': new_tickets_count,
+        'total_tickets': user_tickets.count(),
     }
+
+    # Log the full context for debugging
+    logger.info("=== Template Context ===")
+    logger.info(f"Total tickets: {context['total_tickets']}")
+    logger.info(f"Services count: {len(context['services'])}")
+    logger.info(f"Resolved tickets: {context['resolved_tickets_count']}")
+    logger.info(f"In progress tickets: {context['in_progress_tickets_count']}")
+    logger.info(f"New tickets: {context['new_tickets_count']}")
     
     return render(request, 'support/tickets.html', context)
 
@@ -1082,7 +1122,7 @@ def ticket_detail(request, ticket_id):
         'priorities': Ticket.Priority.choices,
     }
     
-    return render(request, 'support/ticket_detail.html', context)
+    return render(request, 'tickets/ticket_detail.html', context)
 
 def contact(request):
     if request.method == 'POST':

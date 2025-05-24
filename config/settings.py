@@ -114,7 +114,7 @@ TIME_ZONE = 'Africa/Cairo'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # الملفات الثابتة
 STATIC_URL = 'static/'

@@ -167,7 +167,6 @@
     border: none;
     margin-bottom: 2rem;
     transition: all 0.5s ease;
-    animation: float 6s ease-in-out infinite;
 }
 
 @keyframes float {
@@ -501,20 +500,32 @@
 }
 
 /* Modal and backdrop styles to fix freezing issue */
+.modal-backdrop {
+    z-index: 1040;
+}
+
 .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1050 !important;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-    outline: 0;
-    transition: opacity 0.15s linear;
-    pointer-events: auto !important;
-    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+}
+
+.modal-dialog {
+    z-index: 1051;
+}
+
+.modal-content {
+    z-index: 1052;
+    position: relative;
+}
+
+/* Prevent backdrop from interfering with modal content */
+.modal-open .modal {
+    display: block !important;
+    background: transparent;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+    z-index: 1040;
 }
 
 .modal.show {

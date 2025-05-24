@@ -500,6 +500,41 @@ function animateCounter(element, start, end, duration) {
  */
 function initializeTicketModals() {
     console.log('Initializing ticket modals');
+
+    // Add event listeners to all modals
+    document.querySelectorAll('.modal').forEach(modal => {
+        // Prevent clicks inside modal dialog from closing the modal
+        const modalDialog = modal.querySelector('.modal-dialog');
+        if (modalDialog) {
+            modalDialog.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+            });
+            modalDialog.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        // Only close on clicks directly on the modal backdrop
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                if (bsModal) {
+                    bsModal.hide();
+                }
+            }
+        });
+    });
+
+    // Add event listener for close buttons
+    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+        });
+    });
     
     // Attach click handlers to view buttons
     document.querySelectorAll('.btn-view-ticket, .view-ticket-btn, .btn-info[data-ticket-id], a[href="#"][title="View"], [data-action="view"]').forEach(button => {
@@ -748,13 +783,37 @@ function setupModalEventListeners(modal) {
         });
     });
     
-    // Add click handler to backdrop click
+    // Prevent modal content clicks from closing the modal
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Add specific handling for form elements
+        modalContent.querySelectorAll('input, textarea, select, button').forEach(element => {
+            element.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            element.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+            });
+        });
+    }
+
+    // Only close on backdrop click
     modal.addEventListener('click', function(e) {
-        // If clicking on the modal itself (not its content)
         if (e.target === modal) {
-            console.log('Modal backdrop area clicked');
-            hideModal(modal);
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
         }
+    });
+
+    // Prevent any bubbling from modal dialog
+    modal.querySelector('.modal-dialog')?.addEventListener('click', function(e) {
+        e.stopPropagation();
     });
 }
 
@@ -763,6 +822,32 @@ function setupModalEventListeners(modal) {
  */
 function showModal(modal, ticketId) {
     console.log('Showing modal for ticket:', ticketId);
+    
+    // Add click handlers for form elements to prevent modal from closing
+    const modalDialog = modal.querySelector('.modal-dialog');
+    if (modalDialog) {
+        modalDialog.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Ensure form elements are fully interactive
+        const formElements = modalDialog.querySelectorAll('input, textarea, select, button');
+        formElements.forEach(element => {
+            element.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            });
+            
+            // For input fields, prevent Enter key from closing modal
+            if (element.tagName.toLowerCase() === 'input' || element.tagName.toLowerCase() === 'textarea') {
+                element.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.target.form) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    }
     
     // Try Bootstrap 5
     if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
