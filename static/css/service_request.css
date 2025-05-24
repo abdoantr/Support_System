@@ -1,8 +1,28 @@
 /* Request Header Styles */
 .request-header {
-    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--primary-800) 100%);
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
     position: relative;
     overflow: hidden;
+    color: var(--text-light);
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+.request-header h1 {
+    color: var(--text-light);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.request-header p {
+    color: var(--neutral-100);
+    font-size: 1.1rem;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .request-header::before {
@@ -18,10 +38,11 @@
 
 /* Form Card Styles */
 .form-card {
-    background: var(--bg-light);
+    background: var(--bg-primary);
     border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
 }
 
 /* Form Section Styles */
@@ -104,8 +125,8 @@ input[type="file"].form-control::file-selector-button:hover {
     width: 1.2em;
     height: 1.2em;
     margin-top: 0.15em;
-    background-color: var(--bg-light);
-    border: 2px solid var(--border-dark);
+    background-color: var(--bg-primary);
+    border: 2px solid var(--border-medium);
     border-radius: 4px;
     cursor: pointer;
 }
@@ -139,8 +160,8 @@ input[type="file"].form-control::file-selector-button:hover {
 
 /* Modal Styles */
 .modal-content {
-    background: var(--bg-light);
-    border: none;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
     border-radius: 12px;
 }
 

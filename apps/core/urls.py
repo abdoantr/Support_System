@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
 
@@ -56,7 +56,8 @@ urlpatterns = [
     path('password-reset/', auth_views.PasswordResetView.as_view(
         template_name='users/password_reset.html',
         email_template_name='users/email/password_reset_email.html',
-        subject_template_name='users/email/password_reset_subject.txt'
+        subject_template_name='users/email/password_reset_subject.txt',
+        success_url=reverse_lazy('core:password_reset_done')
     ), name='password_reset'),
     path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(
         template_name='users/password_reset_done.html'
@@ -79,14 +80,12 @@ urlpatterns = [
     path('settings/', views.settings, name='settings'),
     path('settings/notifications/', views.update_notification_settings, name='update_notification_settings'),
     path('settings/preferences/', views.update_preferences, name='update_preferences'),
-    path('settings/appearance/', views.update_appearance, name='update_appearance'),
     path('settings/privacy/', views.update_privacy, name='update_privacy'),
     path('settings/system/', views.update_system_settings, name='update_system_settings'),
     
     # Reset settings
     path('settings/reset-notifications/', views.reset_notification_settings, name='reset_notification_settings'),
     path('settings/reset-preferences/', views.reset_preferences, name='reset_preferences'),
-    path('settings/reset-appearance/', views.reset_appearance, name='reset_appearance'),
     path('settings/reset-privacy/', views.reset_privacy, name='reset_privacy'),
     path('settings/reset-system/', views.reset_system_settings, name='reset_system_settings'),
 ]

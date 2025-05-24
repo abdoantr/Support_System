@@ -1,8 +1,11 @@
 /* FAQ Header Styles */
 .faq-header {
-    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--primary-800) 100%);
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
     position: relative;
     overflow: hidden;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
 }
 
 .faq-header::before {
@@ -14,6 +17,23 @@
     height: 100%;
     background: url('../img/pattern.svg') center/cover;
     opacity: 0.1;
+    z-index: 0;
+}
+
+.faq-header h1 {
+    color: var(--text-light);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.faq-header p {
+    color: var(--neutral-100);
+    font-size: 1.1rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
 }
 
 .search-box {
@@ -37,19 +57,20 @@
 
 /* Category Cards */
 .category-card {
-    background: var(--bg-light);
+    background: var(--bg-primary);
     border-radius: 12px;
     padding: 2rem;
     text-align: center;
     transition: all 0.3s ease;
     cursor: pointer;
     height: 100%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
 }
 
 .category-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-lg);
 }
 
 .category-card .icon-wrapper {
@@ -116,7 +137,7 @@
     padding: 1.25rem;
     font-weight: 500;
     color: var(--text-primary);
-    background: var(--bg-light);
+    background: var(--bg-primary);
 }
 
 .accordion-button:not(.collapsed) {

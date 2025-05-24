@@ -122,29 +122,6 @@
     font-weight: 600;
 }
 
-/* Dark theme compatibility */
-.dark-theme .stats-card {
-    background-color: #2c3e50;
-    color: #ecf0f1;
-}
-
-.dark-theme .card {
-    background-color: var(--neutral-800);
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
-}
-
-.dark-theme .card-header {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.dark-theme .table {
-    color: var(--neutral-300);
-}
-
-.dark-theme .table > :not(:first-child) {
-    border-top-color: var(--neutral-700);
-}
 
 /* Animation for loading states */
 @keyframes pulse {
@@ -194,48 +171,36 @@
 
 /* Performance Indicators */
 .performance-card {
-    border-left: 4px solid #3498db;
-    background-color: rgba(52, 152, 219, 0.05);
+    border-left: 4px solid var(--primary-500);
+    background-color: var(--bg-secondary);
     border-radius: 0.75rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
 }
 
 .performance-card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
 }
 
 .performance-card h4 {
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--text-primary);
 }
 
 /* Staff Metrics Card */
 .staff-metrics-card {
-    border-left: 4px solid #9b59b6;
-    background-color: rgba(155, 89, 182, 0.05);
+    border-left: 4px solid var(--primary-400);
+    background-color: var(--bg-secondary);
     border-radius: 0.75rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
 }
 
 .staff-metrics-card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
 }
 
 .staff-metrics-card h4 {
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--text-primary);
 }
-
-/* Dark Mode Adjustments */
-.dark-theme .performance-card,
-.dark-theme .staff-metrics-card {
-    background-color: #2c3e50;
-    color: #ecf0f1;
-}
-
-.dark-theme .performance-card h4,
-.dark-theme .staff-metrics-card h4 {
-    color: #ecf0f1;
-} 

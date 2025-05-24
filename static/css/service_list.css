@@ -3,11 +3,12 @@
 
 /* Header Styles */
 .services-header {
-    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--primary-800) 100%);
-    color: var(--text-light);
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
     position: relative;
     overflow: hidden;
-    animation: fadeIn 0.8s ease-out;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
 }
 
 .services-header::before {
@@ -24,10 +25,20 @@
 
 .services-header h1 {
     color: var(--text-light);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
 }
 
 .services-header p {
-    color: var(--neutral-200);
+    color: var(--neutral-100);
+    font-size: 1.1rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+    max-width: 1000px;
+    margin-bottom: 0;
 }
 
 /* Service Card Styles */

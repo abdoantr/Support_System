@@ -16,9 +16,6 @@
     overflow: hidden;
 }
 
-.dark-theme .tickets-header-wave {
-    color: #000;
-}
 
 .tickets-header h1 {
     font-weight: 700;
@@ -803,45 +800,20 @@
     margin-left: 0.5rem;
 }
 
-/* Dark Theme for Modals */
-.dark-theme .modal-content {
-    background-color: var(--neutral-800);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+/* Modal Styling */
+.modal-content {
+    background-color: var(--bg-primary);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.dark-theme .modal-header {
-    background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.2));
-    border-bottom-color: var(--neutral-700);
+.modal-header {
+    background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.05), rgba(var(--primary-rgb), 0.1));
+    border-bottom-color: var(--border-light);
 }
 
-.dark-theme .modal-footer {
-    background: rgba(0, 0, 0, 0.2);
-    border-top-color: var(--neutral-700);
-}
-
-.dark-theme .ticket-meta,
-.dark-theme .ticket-description,
-.dark-theme .comment-item,
-.dark-theme .attachment-item {
-    background-color: var(--neutral-750);
-}
-
-.dark-theme .ticket-meta-label {
-    color: var(--neutral-400);
-}
-
-.dark-theme .ticket-meta-value,
-.dark-theme .ticket-description-content,
-.dark-theme .comment-content {
-    color: var(--neutral-200);
-}
-
-.dark-theme .attachment-name {
-    color: var(--primary-300);
-}
-
-.dark-theme .attachment-item:hover {
-    background-color: var(--neutral-700);
+.modal-footer {
+    background: var(--bg-secondary);
+    border-top-color: var(--border-light);
 }
 
 /* File upload dropzone */
@@ -878,16 +850,6 @@
     margin-top: 0.5rem;
 }
 
-.dark-theme .file-dropzone {
-    background-color: var(--neutral-750);
-    border-color: var(--neutral-600);
-}
-
-.dark-theme .file-dropzone:hover,
-.dark-theme .file-dropzone.dragover {
-    background-color: rgba(var(--primary-rgb), 0.1);
-    border-color: var(--primary-400);
-}
 
 /* Responsive Styles */
 @media (max-width: 991.98px) {
@@ -945,58 +907,6 @@
     }
 }
 
-/* Dark Theme Support */
-.dark-theme .tickets-header {
-    background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
-}
-
-.dark-theme .tickets-card {
-    background-color: var(--neutral-800);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.dark-theme .tickets-table thead th {
-    background-color: var(--neutral-800);
-    color: var(--neutral-200);
-    border-bottom-color: var(--neutral-700);
-}
-
-.dark-theme .tickets-table tbody td {
-    border-bottom-color: var(--neutral-700);
-}
-
-.dark-theme .ticket-subject {
-    color: var(--neutral-200);
-}
-
-.dark-theme .tickets-table tbody tr:hover {
-    background-color: var(--neutral-700);
-}
-
-.dark-theme .custom-file-upload {
-    border-color: var(--neutral-700);
-}
-
-.dark-theme .ticket-meta,
-.dark-theme .attachment-item,
-.dark-theme .current-attachment-item,
-.dark-theme .comment-item {
-    background-color: var(--neutral-750);
-}
-
-.dark-theme .attachment-icon {
-    background-color: var(--neutral-700);
-}
-
-.dark-theme .empty-state-icon {
-    background-color: var(--neutral-700);
-    color: var(--neutral-200);
-}
-
-.dark-theme .modal-content {
-    background-color: var(--neutral-800);
-}
-
 /* Counter Animation */
 @keyframes pulse-complete {
     0% {
@@ -1045,111 +955,6 @@
     --neutral-800: #212529;
 }
 
-/* Dark Theme Improvements */
-.dark-theme {
-    --bg-light: #212529;
-    --bg-light-rgb: 33, 37, 41;
-    --text-primary: #f8f9fa;
-    --text-secondary: #adb5bd;
-    --border-light: #495057;
-}
-
-.dark-theme .tickets-header {
-    background: linear-gradient(135deg, #192451 0%, #0a1128 100%);
-}
-
-.dark-theme .tickets-card {
-    background-color: var(--neutral-800);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-}
-
-.dark-theme .stat-card:before {
-    opacity: 0.95;
-}
-
-.dark-theme .stat-card.bg-primary:before {
-    background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
-}
-
-.dark-theme .stat-card.bg-success:before {
-    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
-}
-
-.dark-theme .stat-card.bg-warning:before {
-    background: linear-gradient(135deg, #e65100 0%, #ef6c00 100%);
-}
-
-.dark-theme .stat-card.bg-danger:before {
-    background: linear-gradient(135deg, #b71c1c 0%, #c62828 100%);
-}
-
-.dark-theme .tickets-table thead th {
-    background-color: var(--neutral-750);
-    color: var(--neutral-200);
-    border-bottom-color: var(--neutral-700);
-}
-
-.dark-theme .tickets-table thead th.sortable:hover {
-    background-color: var(--neutral-700);
-}
-
-.dark-theme .tickets-table thead th.sortable[data-direction] {
-    background-color: rgba(var(--primary-rgb), 0.15);
-    color: var(--primary-300);
-}
-
-.dark-theme .tickets-table tbody td {
-    border-bottom-color: var(--neutral-700);
-    color: var(--neutral-200);
-}
-
-.dark-theme .tickets-table tbody tr:hover {
-    background-color: var(--neutral-750);
-}
-
-.dark-theme .tickets-search .input-group-text,
-.dark-theme .tickets-search .form-control {
-    background-color: var(--neutral-750);
-    border-color: var(--neutral-700);
-    color: var(--neutral-200);
-}
-
-.dark-theme .btn-outline-primary {
-    color: var(--primary-300);
-    border-color: var(--primary-600);
-}
-
-.dark-theme .btn-outline-primary:hover {
-    background-color: var(--primary-700);
-    color: var(--neutral-100);
-}
-
-.dark-theme .btn-outline-secondary {
-    color: var(--neutral-300);
-    border-color: var(--neutral-600);
-}
-
-.dark-theme .btn-outline-secondary:hover {
-    background-color: var(--neutral-600);
-    color: var(--neutral-100);
-}
-
-.dark-theme .empty-state {
-    background-color: var(--neutral-750);
-}
-
-.dark-theme .empty-state-icon {
-    background: linear-gradient(135deg, var(--primary-700), var(--primary-500));
-}
-
-.dark-theme .service-badge {
-    background-color: var(--neutral-700);
-    color: var(--neutral-200);
-}
-
-.dark-theme .ticket-subject {
-    color: var(--primary-300);
-}
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
@@ -1171,17 +976,6 @@
     background: rgba(var(--primary-rgb), 0.5);
 }
 
-.dark-theme::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.dark-theme::-webkit-scrollbar-thumb {
-    background: rgba(var(--primary-rgb), 0.4);
-}
-
-.dark-theme::-webkit-scrollbar-thumb:hover {
-    background: rgba(var(--primary-rgb), 0.6);
-}
 
 /* Bootstrap 5 compatibility fix */
 .btn-close {

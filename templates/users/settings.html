@@ -23,9 +23,6 @@
                         <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#preferences">
                             <i class="fas fa-cog me-2"></i> Preferences
                         </a>
-                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#appearance">
-                            <i class="fas fa-paint-brush me-2"></i> Appearance
-                        </a>
                         <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#privacy">
                             <i class="fas fa-shield-alt me-2"></i> Privacy
                         </a>
@@ -140,56 +137,6 @@
                             </div>
                         </div>
 
-                        <!-- Appearance Settings -->
-                        <div class="tab-pane fade" id="appearance">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Appearance</h5>
-                                </div>
-                                <div class="card-body">
-                                    <form id="appearanceForm" method="post" action="{% url 'core:update_appearance' %}" data-ajax>
-                                        {% csrf_token %}
-                                        <div class="mb-3">
-                                            <label class="form-label">Theme</label>
-                                            <select class="form-select" name="theme" onchange="updateThemePreview(this.value)">
-                                                <option value="light" {% if settings.appearance.theme == 'light' %}selected{% endif %}>Light</option>
-                                                <option value="dark" {% if settings.appearance.theme == 'dark' %}selected{% endif %}>Dark</option>
-                                                <option value="auto" {% if settings.appearance.theme == 'auto' %}selected{% endif %}>System Default</option>
-                                            </select>
-                                            <!-- Theme preview will be inserted here by JavaScript -->
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Accent Color</label>
-                                            <div class="d-flex gap-2">
-                                                {% for color in available_colors %}
-                                                <div class="form-check">
-                                                    <input class="form-check-input accent-color-input" 
-                                                           type="radio" 
-                                                           name="accent_color" 
-                                                           value="{{ color }}" 
-                                                           id="color{{ color }}"
-                                                           {% if settings.appearance.accent_color == color %}checked{% endif %}>
-                                                    <label class="form-check-label" for="color{{ color }}">
-                                                        {{ color|title }}
-                                                    </label>
-                                                </div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Font Size</label>
-                                            <select class="form-select" name="font_size">
-                                                <option value="small" {% if settings.appearance.font_size == 'small' %}selected{% endif %}>Small</option>
-                                                <option value="medium" {% if settings.appearance.font_size == 'medium' %}selected{% endif %}>Medium</option>
-                                                <option value="large" {% if settings.appearance.font_size == 'large' %}selected{% endif %}>Large</option>
-                                            </select>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                                        <button type="button" class="reset-settings-btn" onclick="resetSettings('appearance')">Reset to defaults</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Privacy Settings -->
                         <div class="tab-pane fade" id="privacy">

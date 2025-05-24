@@ -1,6 +1,45 @@
 /* Import Variables */
 @import url('variables.css');
 
+/* Shared Header Styles */
+.page-header {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    position: relative;
+    overflow: hidden;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("../img/pattern.svg") center/cover;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.page-header h1 {
+    color: var(--text-light);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.page-header p {
+    color: var(--neutral-100);
+    font-size: 1.1rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 0;
+}
+
 
 :root {
     /* Light Mode */
@@ -132,21 +171,22 @@
 
 /* Modern Footer Styles */
 .modern-footer {
-    background: var(--neutral-900);
-    color: var(--text-light);
+    background: var(--neutral-100);
+    color: var(--text-primary);
     padding: 4rem 0 0;
     margin-top: 4rem;
+    border-top: 1px solid var(--neutral-200);
 }
 
 .modern-footer h5 {
-    color: var(--text-light);
+    color: var(--text-primary);
     font-weight: 600;
     margin-bottom: 1.5rem;
     font-size: 1.1rem;
 }
 
 .modern-footer p {
-    color: var(--neutral-400);
+    color: var(--text-secondary);
     margin-bottom: 1.5rem;
     font-size: 0.95rem;
     line-height: 1.6;
@@ -163,14 +203,14 @@
 }
 
 .modern-footer ul li a {
-    color: var(--neutral-400);
+    color: var(--text-secondary);
     text-decoration: none;
     transition: color 0.3s ease;
     font-size: 0.95rem;
 }
 
 .modern-footer ul li a:hover {
-    color: var(--text-light);
+    color: var(--primary-600);
 }
 
 .modern-footer .social-links {
@@ -180,14 +220,14 @@
 }
 
 .modern-footer .social-links a {
-    color: var(--neutral-400);
+    color: var(--text-secondary);
     text-decoration: none;
     transition: color 0.3s ease;
     font-size: 1.2rem;
 }
 
 .modern-footer .social-links a:hover {
-    color: var(--text-light);
+    color: var(--primary-600);
 }
 
 .modern-footer .newsletter-form {
@@ -199,16 +239,17 @@
 .modern-footer .newsletter-form input {
     flex: 1;
     padding: 0.75rem 1rem;
-    border: 1px solid var(--neutral-700);
+    border: 1px solid var(--neutral-300);
     border-radius: 6px;
-    background: var(--neutral-800);
-    color: var(--text-light);
+    background: var(--bg-primary);
+    color: var(--text-primary);
     font-size: 0.95rem;
 }
 
 .modern-footer .newsletter-form input:focus {
     outline: none;
     border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
 }
 
 .modern-footer .newsletter-form button {
@@ -222,19 +263,19 @@
 }
 
 .modern-footer .newsletter-form button:hover {
-    background: var(--primary-700);
+    background: var(--primary-500);
 }
 
 .modern-footer .footer-bottom {
     margin-top: 3rem;
     padding: 1.5rem 0;
-    border-top: 1px solid var(--neutral-800);
+    border-top: 1px solid var(--neutral-200);
     text-align: center;
 }
 
 .modern-footer .footer-bottom p {
     margin: 0;
-    color: var(--neutral-500);
+    color: var(--text-tertiary);
     font-size: 0.9rem;
 }
 
@@ -266,10 +307,10 @@
     width: 100%;
     padding: 0.875rem 1.25rem;
     padding-right: 3.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-primary);
+    border: 1px solid var(--neutral-300);
     border-radius: 12px;
-    color: var(--text-light);
+    color: var(--text-primary);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-block;
     position: relative;
@@ -279,12 +320,12 @@
 .footer-newsletter input:focus {
     outline: none;
     border-color: var(--primary-500);
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    background: var(--bg-primary);
+    box-shadow: 0 0 0 3px var(--primary-100);
 }
 
 .footer-newsletter input::placeholder {
-    color: var(--neutral-500);
+    color: var(--text-tertiary);
 }
 
 .footer-newsletter button {
@@ -294,7 +335,7 @@
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: var(--neutral-400);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0.5rem;
@@ -302,8 +343,8 @@
 }
 
 .footer-newsletter button:hover {
-    color: var(--primary-400);
-    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary-600);
+    background: var(--primary-50);
 }
 
 /* Responsive Design */

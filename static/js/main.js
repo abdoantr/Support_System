@@ -1,22 +1,5 @@
-// Show loading spinner
-function showLoading() {
-    const spinner = document.createElement('div');
-    spinner.className = 'spinner-overlay';
-    spinner.innerHTML = `
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    `;
-    document.body.appendChild(spinner);
-}
-
-// Hide loading spinner
-function hideLoading() {
-    const spinner = document.querySelector('.spinner-overlay');
-    if (spinner) {
-        spinner.remove();
-    }
-}
+// Main JavaScript functionality for Support System
+// Uses utility functions from utils.js
 
 // Initialize tooltips and popovers
 document.addEventListener('DOMContentLoaded', function() {
@@ -79,37 +62,13 @@ document.addEventListener('submit', function(e) {
     }
 });
 
-// Show alert message
-function showAlert(type, message) {
-    const alertContainer = document.getElementById('alertContainer');
-    if (alertContainer) {
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type} alert-dismissible fade show`;
-        alert.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        `;
-        alertContainer.appendChild(alert);
-        setTimeout(() => {
-            alert.remove();
-        }, 5000);
-    }
-}
-
-// Get CSRF token from cookies
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
+// Alert container setup
+const alertContainer = document.getElementById('alertContainer');
+if (!alertContainer) {
+    const container = document.createElement('div');
+    container.id = 'alertContainer';
+    container.className = 'alert-container';
+    document.body.appendChild(container);
 }
 
 // Live search functionality

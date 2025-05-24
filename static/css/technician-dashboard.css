@@ -10,9 +10,11 @@
 /* Stats Cards */
 .tech-stats-card {
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
     transition: transform 0.3s;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
 }
 
 .tech-stats-card:hover {
@@ -46,9 +48,10 @@
 
 /* Card Headers */
 .card-header-custom {
-    background-color: rgba(0, 0, 0, 0.03);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-light);
     font-weight: 600;
+    color: var(--text-primary);
 }
 
 /* Ticket Priority Indicators */
@@ -147,7 +150,7 @@
 
 /* Knowledge Base List Styles */
 .list-group-item-action:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: var(--bg-secondary);
 }
 
 /* Alert List Styles */
@@ -167,47 +170,19 @@
     font-size: 1.5rem;
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-    .card {
-        background-color: #2b3035;
-        color: #e9ecef;
-    }
-    
-    .card-header-custom {
-        background-color: rgba(255, 255, 255, 0.03);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.125);
-    }
-    
-    .table {
-        color: #e9ecef;
-    }
-    
-    .table thead th {
-        border-bottom-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    .list-group-item {
-        background-color: #2b3035;
-        border-color: rgba(255, 255, 255, 0.125);
-        color: #e9ecef;
-    }
-    
-    .dropdown-menu {
-        background-color: #343a40;
-        color: #e9ecef;
-        border-color: rgba(255, 255, 255, 0.125);
-    }
-    
-    .dropdown-item {
-        color: #e9ecef;
-    }
-    
-    .dropdown-item:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    .performance-indicator {
-        background-color: #495057;
-    }
-} 
+/* Dropdown Menu */
+.dropdown-menu {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-md);
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+}
+
+.dropdown-item:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}

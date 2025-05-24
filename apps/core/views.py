@@ -863,35 +863,6 @@ def update_preferences(request):
 
 @login_required
 @require_POST
-def update_appearance(request):
-    """
-    Update user appearance settings.
-    """
-    try:
-        # Try to parse JSON data from request body
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except:
-            # Fall back to POST data if JSON parsing fails
-            data = request.POST
-            
-        user_settings = request.user.settings
-        
-        # Update appearance settings
-        appearance = user_settings.appearance
-        appearance['theme'] = data.get('theme', 'light')
-        appearance['accent_color'] = data.get('accent_color', 'primary')
-        appearance['font_size'] = data.get('font_size', 'medium')
-        
-        user_settings.appearance = appearance
-        user_settings.save()
-        
-        return JsonResponse({'success': True, 'message': 'Appearance settings updated'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'message': f'Error updating appearance: {str(e)}'})
-
-@login_required
-@require_POST
 def update_privacy(request):
     """
     Update user privacy settings.
@@ -1306,21 +1277,6 @@ def reset_preferences(request):
         return JsonResponse({'success': True, 'message': 'Preferences reset to defaults'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Error resetting preferences: {str(e)}'})
-
-@login_required
-@require_POST
-def reset_appearance(request):
-    """
-    Reset appearance settings to default values.
-    """
-    try:
-        user_settings = request.user.settings
-        user_settings.appearance = user_settings.get_default_appearance()
-        user_settings.save()
-        
-        return JsonResponse({'success': True, 'message': 'Appearance settings reset to defaults'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'message': f'Error resetting appearance: {str(e)}'})
 
 @login_required
 @require_POST
