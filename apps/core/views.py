@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 def is_technician(user):
     """Check if user has technician role"""
     if user.is_authenticated:
-        return hasattr(user, 'groups') and user.groups.filter(name='Technicians').exists()
+        return hasattr(user, 'role') and user.role == 'technician'
     return False
 
 def home(request):
@@ -604,16 +604,28 @@ def login_view(request):
             login(request, user)
             
             # Set session expiry based on remember me checkbox
-            if not remember_me:
+            if remember_me:
+                # Keep session for 2 weeks
+                request.session.set_expiry(1209600)
+            else:
                 request.session.set_expiry(0)  # Session expires when browser closes
+            
+            # Log user role and authentication status
+            logger.info(f"User logged in - Email: {email}, Role: {user.role}, Is Authenticated: {user.is_authenticated}")
+            
+            # Get next URL if it exists
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
             
             # Redirect to appropriate dashboard based on role
             if user.role == 'technician':
                 return redirect('core:technician_dashboard')
             else:
-                return redirect('core:dashboard')  # Updated URL name
+                return redirect('core:dashboard')
         else:
             messages.error(request, 'Invalid email or password')
+            logger.warning(f"Failed login attempt - Email: {email}")
     
     return render(request, 'users/login.html')
 
@@ -1430,8 +1442,15 @@ def technician_dashboard(request):
     Display the technician dashboard with assigned tickets, SLA alerts, team performance,
     and knowledge base articles.
     """
+    # Log authentication status and role
+    logger.info(f"Technician Dashboard Access - User: {request.user.email}, "
+               f"Role: {request.user.role}, "
+               f"Is Authenticated: {request.user.is_authenticated}")
+
     # Ensure user is a technician
-    if request.user.role != 'technician' and not request.user.is_superuser:
+    if not is_technician(request.user) and not request.user.is_superuser:
+        logger.warning(f"Unauthorized access attempt to technician dashboard - "
+                      f"User: {request.user.email}, Role: {request.user.role}")
         messages.error(request, "Access denied. You must be a technician to view this page.")
         return redirect('core:dashboard')
     
@@ -1644,55 +1663,263 @@ def technician_dashboard(request):
     
     return render(request, 'technician/dashboard.html', context)
 
+@login_required
 def technician_tickets(request):
-    return render(request, 'technician/tickets.html')
+    # Log authentication status and role
+    logger.info(f"Technician Tickets Access - User: {request.user.email}, "
+               f"Role: {request.user.role}, "
+               f"Is Authenticated: {request.user.is_authenticated}")
 
+    # Check if user is technician
+    if not is_technician(request.user) and not request.user.is_superuser:
+        logger.warning(f"Unauthorized access attempt to technician tickets - "
+                      f"User: {request.user.email}, Role: {request.user.role}")
+        messages.error(request, "Access denied. You must be a technician to view tickets.")
+        return redirect('core:dashboard')
+
+    # Get all tickets with related data
+    tickets = Ticket.objects.select_related(
+        'service', 'created_by', 'assigned_to'
+    ).order_by('-created_at')
+    
+    # Apply filters
+    status = request.GET.get('status')
+    priority = request.GET.get('priority')
+    assigned = request.GET.get('assigned')
+    
+    if status:
+        tickets = tickets.filter(status=status)
+    if priority:
+        tickets = tickets.filter(priority=priority)
+    if assigned:
+        if assigned == 'me':
+            tickets = tickets.filter(assigned_to=request.user)
+        elif assigned == 'unassigned':
+            tickets = tickets.filter(assigned_to=None)
+    
+    # Add ticket statistics
+    stats = {
+        'total': tickets.count(),
+        'new': tickets.filter(status='new').count(),
+        'in_progress': tickets.filter(status='in_progress').count(),
+        'resolved': tickets.filter(status='resolved').count(),
+    }
+    
+    context = {
+        'tickets': tickets,
+        'stats': stats,
+        'status_choices': Ticket.Status.choices,
+        'priority_choices': Ticket.Priority.choices,
+    }
+    return render(request, 'technician/tickets.html', context)
+
+@login_required
+@user_passes_test(is_technician)
 def technician_ticket_detail(request, ticket_id):
-    return render(request, 'technician/ticket_detail.html', {'ticket': {'id': ticket_id}})
+    ticket = get_object_or_404(Ticket.objects.select_related(
+        'service', 'created_by', 'assigned_to'
+    ), id=ticket_id)
+    
+    comments = Comment.objects.filter(ticket=ticket).order_by('created_at')
+    attachments = TicketAttachment.objects.filter(ticket=ticket)
+    
+    context = {
+        'ticket': ticket,
+        'comments': comments,
+        'attachments': attachments,
+        'status_choices': Ticket.Status.choices,
+        'priority_choices': Ticket.Priority.choices,
+    }
+    return render(request, 'technician/ticket_detail.html', context)
 
+@login_required
+@user_passes_test(is_technician)
 def technician_create_ticket(request):
     if request.method == 'POST':
-        # Handle form submission (in a real app)
-        return redirect('core:technician_tickets')
-    return redirect('core:technician_tickets')
+        service_id = request.POST.get('service')
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        priority = request.POST.get('priority', 'normal')
+        
+        if not all([service_id, title, description]):
+            messages.error(request, 'Please fill in all required fields.')
+            return redirect('core:technician_create_ticket')
+        
+        ticket = Ticket.objects.create(
+            service_id=service_id,
+            title=title,
+            description=description,
+            priority=priority,
+            created_by=request.user,
+            assigned_to=request.user,
+            status='in_progress'
+        )
+        
+        messages.success(request, 'Ticket created successfully.')
+        return redirect('core:technician_ticket_detail', ticket_id=ticket.id)
+    
+    services = Service.objects.filter(is_active=True)
+    context = {
+        'services': services,
+        'priority_choices': Ticket.Priority.choices,
+    }
+    return render(request, 'technician/create_ticket.html', context)
 
+@login_required
+@user_passes_test(is_technician)
 def technician_update_ticket(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    
     if request.method == 'POST':
-        # Handle form submission (in a real app)
-        return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
+        status = request.POST.get('status')
+        priority = request.POST.get('priority')
+        resolution = request.POST.get('resolution')
+        
+        if status:
+            ticket.status = status
+        if priority:
+            ticket.priority = priority
+        if resolution:
+            ticket.resolution = resolution
+            if status == 'resolved':
+                ticket.resolved_at = timezone.now()
+        
+        ticket.save()
+        messages.success(request, 'Ticket updated successfully.')
+    
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
+@login_required
+@user_passes_test(is_technician)
 def technician_resolve_ticket(request, ticket_id):
-    # Handle ticket resolution (in a real app)
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    
+    if request.method == 'POST':
+        resolution = request.POST.get('resolution')
+        if not resolution:
+            messages.error(request, 'Please provide a resolution summary.')
+            return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
+        
+        ticket.status = 'resolved'
+        ticket.resolution = resolution
+        ticket.resolved_at = timezone.now()
+        ticket.save()
+        
+        messages.success(request, 'Ticket resolved successfully.')
+    
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
+@login_required
+@user_passes_test(is_technician)
 def technician_close_ticket(request, ticket_id):
-    # Handle ticket closure (in a real app)
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    
+    if request.method == 'POST':
+        if ticket.status != 'resolved':
+            messages.error(request, 'Only resolved tickets can be closed.')
+            return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
+        
+        ticket.status = 'closed'
+        ticket.save()
+        messages.success(request, 'Ticket closed successfully.')
+    
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
+@login_required
+@user_passes_test(is_technician)
 def technician_transfer_ticket(request, ticket_id):
-    # Handle ticket transfer (in a real app)
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    
+    if request.method == 'POST':
+        technician_id = request.POST.get('technician')
+        if not technician_id:
+            messages.error(request, 'Please select a technician.')
+            return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
+        
+        try:
+            new_technician = User.objects.get(id=technician_id, role='technician')
+            ticket.assigned_to = new_technician
+            ticket.save()
+            messages.success(request, f'Ticket transferred to {new_technician.get_full_name()}.')
+        except User.DoesNotExist:
+            messages.error(request, 'Selected technician not found.')
+    
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
+@login_required
+@user_passes_test(is_technician)
 def technician_print_ticket(request, ticket_id):
-    return render(request, 'technician/ticket_print.html', {'ticket': {'id': ticket_id}})
+    ticket = get_object_or_404(Ticket.objects.select_related(
+        'service', 'created_by', 'assigned_to'
+    ), id=ticket_id)
+    
+    comments = Comment.objects.filter(ticket=ticket).order_by('created_at')
+    attachments = TicketAttachment.objects.filter(ticket=ticket)
+    
+    context = {
+        'ticket': ticket,
+        'comments': comments,
+        'attachments': attachments,
+    }
+    return render(request, 'technician/ticket_print.html', context)
 
+@login_required
+@user_passes_test(is_technician)
 def technician_assign_ticket(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    
     if request.method == 'POST':
-        # Handle form submission (in a real app)
-        return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
+        ticket.assigned_to = request.user
+        ticket.status = 'in_progress'
+        ticket.save()
+        messages.success(request, 'Ticket assigned to you successfully.')
+    
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
+@login_required
+@user_passes_test(is_technician)
 def technician_escalate_ticket(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    
     if request.method == 'POST':
-        # Handle form submission (in a real app)
-        return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
+        reason = request.POST.get('reason')
+        if not reason:
+            messages.error(request, 'Please provide an escalation reason.')
+            return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
+        
+        ticket.priority = 'urgent'
+        ticket.save()
+        
+        # Add a comment about the escalation
+        Comment.objects.create(
+            ticket=ticket,
+            author=request.user,
+            content=f'Ticket escalated: {reason}'
+        )
+        
+        messages.success(request, 'Ticket escalated successfully.')
+    
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
+@login_required
+@user_passes_test(is_technician)
 def technician_add_comment(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    
     if request.method == 'POST':
-        # Handle form submission (in a real app)
-        return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
+        content = request.POST.get('content')
+        if not content:
+            messages.error(request, 'Please enter a comment.')
+            return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
+        
+        Comment.objects.create(
+            ticket=ticket,
+            author=request.user,
+            content=content
+        )
+        
+        messages.success(request, 'Comment added successfully.')
+    
     return redirect('core:technician_ticket_detail', ticket_id=ticket_id)
 
 @login_required

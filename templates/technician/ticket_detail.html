@@ -1,7 +1,7 @@
 {% extends 'technician/base.html' %}
 {% load static %}
 
-{% block title %}Ticket #{{ ticket.id }} - {{ ticket.subject }}{% endblock %}
+{% block title %}Ticket #{{ ticket.id }} - {{ ticket.title }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -171,7 +171,7 @@
             <a href="{% url 'core:technician_tickets' %}" class="text-decoration-none me-2">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            Ticket #{{ ticket.id }} - {{ ticket.subject }}
+            Ticket #{{ ticket.id }} - {{ ticket.title }}
         </h1>
         <div class="d-flex">
             <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#addCommentModal">
@@ -243,50 +243,50 @@
             </div>
         </div>
         
-        <!-- Customer Information Card -->
+        <!-- Created By Information Card -->
         <div class="card ticket-detail-card">
             <div class="card-header bg-light py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Customer Information</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Created By</h6>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
-                    {% if ticket.customer.profile.avatar %}
-                        <img src="{{ ticket.customer.profile.avatar.url }}" alt="Avatar" class="rounded-circle me-3" style="width: 48px; height: 48px;">
+                    {% if ticket.created_by.profile.avatar %}
+                        <img src="{{ ticket.created_by.profile.avatar.url }}" alt="Avatar" class="rounded-circle me-3" style="width: 48px; height: 48px;">
                     {% else %}
                         <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
-                            {{ ticket.customer.get_initials }}
+                            {{ ticket.created_by.get_initials }}
                         </div>
                     {% endif %}
                     <div>
-                        <h6 class="mb-0">{{ ticket.customer.get_full_name|default:ticket.customer.username }}</h6>
-                        <a href="mailto:{{ ticket.customer.email }}" class="text-muted small">
-                            <i class="fas fa-envelope me-1"></i> {{ ticket.customer.email }}
+                        <h6 class="mb-0">{{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</h6>
+                        <a href="mailto:{{ ticket.created_by.email }}" class="text-muted small">
+                            <i class="fas fa-envelope me-1"></i> {{ ticket.created_by.email }}
                         </a>
                     </div>
                 </div>
                 
                 <div class="ticket-meta">
-                    {% if ticket.customer.profile.phone %}
+                    {% if ticket.created_by.profile.phone %}
                     <div class="ticket-meta-item">
                         <div class="ticket-meta-label">Phone</div>
                         <div class="ticket-meta-value">
-                            <a href="tel:{{ ticket.customer.profile.phone }}">{{ ticket.customer.profile.phone }}</a>
+                            <a href="tel:{{ ticket.created_by.profile.phone }}">{{ ticket.created_by.profile.phone }}</a>
                         </div>
                     </div>
                     {% endif %}
                     <div class="ticket-meta-item">
                         <div class="ticket-meta-label">Member Since</div>
-                        <div class="ticket-meta-value">{{ ticket.customer.date_joined|date:"M d, Y" }}</div>
+                        <div class="ticket-meta-value">{{ ticket.created_by.date_joined|date:"M d, Y" }}</div>
                     </div>
                     <div class="ticket-meta-item">
                         <div class="ticket-meta-label">Total Tickets</div>
-                        <div class="ticket-meta-value">{{ ticket.customer.tickets.count }}</div>
+                        <div class="ticket-meta-value">{{ ticket.created_by.tickets.count }}</div>
                     </div>
                 </div>
                 
                 <div class="mt-3">
-                    <a href="{% url 'core:customer_detail' ticket.customer.id %}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-user me-1"></i> View Customer Details
+                    <a href="{% url 'core:profile' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-user me-1"></i> View Profile
                     </a>
                 </div>
             </div>
@@ -554,8 +554,8 @@
                         <textarea class="form-control" id="statusNote" name="note" rows="3" placeholder="Add a note about this status change"></textarea>
                     </div>
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="notifyCustomer" name="notify_customer" checked>
-                        <label class="form-check-label" for="notifyCustomer">Notify customer of status change</label>
+                        <input type="checkbox" class="form-check-input" id="notifyUser" name="notify_user" checked>
+                        <label class="form-check-label" for="notifyUser">Notify user of status change</label>
                     </div>
                     <input type="hidden" name="action" value="update_status">
                 </form>
@@ -630,7 +630,7 @@
                             <option value="" selected disabled>Select reason</option>
                             <option value="technical_complexity">Technical Complexity</option>
                             <option value="high_priority">High Priority Issue</option>
-                            <option value="customer_request">Customer Request</option>
+                            <option value="user_request">User Request</option>
                             <option value="sla_breach">SLA Breach</option>
                             <option value="special_handling">Requires Special Handling</option>
                             <option value="other">Other</option>

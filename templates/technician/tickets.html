@@ -193,9 +193,9 @@
                                     <input class="form-check-input" type="checkbox" id="selectAll">
                                 </div>
                             </th>
-                            <th width="60px">ID <i class="fas fa-sort"></i></th>
-                            <th>Subject <i class="fas fa-sort"></i></th>
-                            <th>Customer <i class="fas fa-sort"></i></th>
+                            <th width="60px" data-sort="id">ID <i class="fas fa-sort"></i></th>
+                            <th data-sort="title">Title <i class="fas fa-sort"></i></th>
+                            <th data-sort="created_by">Created By <i class="fas fa-sort"></i></th>
                             <th>Status <i class="fas fa-sort"></i></th>
                             <th>Priority <i class="fas fa-sort"></i></th>
                             <th>Created <i class="fas fa-sort"></i></th>
@@ -214,13 +214,13 @@
                             <td>#{{ ticket.id }}</td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <span class="text-truncate" style="max-width: 250px;">{{ ticket.subject }}</span>
+                                    <span class="text-truncate" style="max-width: 250px;">{{ ticket.title }}</span>
                                     {% if ticket.comments.count > 0 %}
                                     <span class="badge bg-info rounded-pill ms-2">{{ ticket.comments.count }}</span>
                                     {% endif %}
                                 </div>
                             </td>
-                            <td>{{ ticket.customer.get_full_name|default:ticket.customer.username }}</td>
+                            <td>{{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</td>
                             <td>
                                 <span class="status-badge status-{{ ticket.status|slugify }}">
                                     {{ ticket.get_status_display }}
@@ -322,30 +322,19 @@
                 <form id="createTicketForm" method="post" action="{% url 'core:technician_create_ticket' %}" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="ticketSubject" class="form-label">Subject</label>
-                        <input type="text" class="form-control" id="ticketSubject" name="subject" required>
+                        <label for="ticketTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="ticketTitle" name="title" required>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="ticketCustomer" class="form-label">Customer</label>
-                            <select class="form-select" id="ticketCustomer" name="customer" required>
-                                <option value="" selected disabled>Select customer</option>
-                                {% for customer in customers %}
-                                <option value="{{ customer.id }}">{{ customer.get_full_name|default:customer.username }}</option>
+                            <label for="ticketService" class="form-label">Service</label>
+                            <select class="form-select" id="ticketService" name="service" required>
+                                <option value="" selected disabled>Select service</option>
+                                {% for service in services %}
+                                <option value="{{ service.id }}">{{ service.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label for="ticketCategory" class="form-label">Category</label>
-                            <select class="form-select" id="ticketCategory" name="category" required>
-                                <option value="" selected disabled>Select category</option>
-                                {% for category in categories %}
-                                <option value="{{ category.id }}">{{ category.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="ticketPriority" class="form-label">Priority</label>
                             <select class="form-select" id="ticketPriority" name="priority" required>
@@ -355,14 +344,10 @@
                                 <option value="urgent">Urgent</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label for="ticketStatus" class="form-label">Status</label>
-                            <select class="form-select" id="ticketStatus" name="status" required>
-                                <option value="new" selected>New</option>
-                                <option value="in-progress">In Progress</option>
-                                <option value="on-hold">On Hold</option>
-                            </select>
-                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ticketDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="ticketDescription" name="description" rows="4" required></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="ticketDescription" class="form-label">Description</label>
@@ -564,8 +549,8 @@
         // Map column names to indices
         const columnMap = {
             'id': 2, // Accounting for the checkbox column
-            'subject': 3,
-            'customer': 4,
+            'title': 3,
+            'created_by': 4,
             'status': 5,
             'priority': 6,
             'created': 7,

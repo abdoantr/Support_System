@@ -3,8 +3,10 @@ from django.contrib.auth import get_user_model
 from apps.core.models import FAQ
 from apps.tickets.models import Ticket, TicketAttachment
 from apps.services.models import Service
+from apps.kb.models import KnowledgeBaseArticle, ArticleCategory, Tag
 from django.utils import timezone
 import random
+import json
 
 User = get_user_model()
 
@@ -75,16 +77,6 @@ class Command(BaseCommand):
                 }
             )
         self.stdout.write(self.style.SUCCESS('Successfully created FAQ entries'))
-
-        # Create or get default service
-        service, created = Service.objects.get_or_create(
-            name='Technical Support',
-            defaults={
-                'description': 'General technical support and troubleshooting',
-                'is_active': True
-            }
-        )
-        self.stdout.write(self.style.SUCCESS(f'Using service: {service.name} (ID: {service.id})'))
 
         # Sample ticket subjects and descriptions
         ticket_samples = [
@@ -161,18 +153,10 @@ class Command(BaseCommand):
             'system_info.txt': 'OS: Windows 11\nRAM: 16GB\nCPU: Intel i7\nStorage: 500GB SSD'
         }
 
-        # Get or create a sample user for tickets
-        import uuid
-
-        # Get or create test users with unique usernames
-        def get_unique_username(base_name):
-            username = f"{base_name}_{str(uuid.uuid4())[:8]}"
-            return username
-
-        # Get the specific user
+        # Get or create test users with specified emails
         try:
             customer = User.objects.get(email='antr@customer.com')
-            self.stdout.write(self.style.SUCCESS(f'Found user: antr@customer.com'))
+            self.stdout.write(self.style.SUCCESS(f'Found customer user: antr@customer.com'))
             
             # Clear existing tickets for this user
             Ticket.objects.filter(created_by=customer).delete()
@@ -182,24 +166,24 @@ class Command(BaseCommand):
             return
 
         try:
-            technician = User.objects.get(email='technician@example.com')
+            technician = User.objects.get(email='antr@technician.com')
+            self.stdout.write(self.style.SUCCESS(f'Found technician user: antr@technician.com'))
         except User.DoesNotExist:
-            technician = User.objects.create_user(
-                username=get_unique_username('technician'),
-                email='technician@example.com',
-                password='securepassword123',
-                first_name='Sample',
-                last_name='Technician',
-                is_active=True,
-                role='TECHNICIAN'
-            )
+            self.stdout.write(self.style.ERROR('User antr@technician.com not found'))
+            return
+
+        # Get available services from database
+        services = list(Service.objects.filter(is_active=True))
+        if not services:
+            self.stdout.write(self.style.ERROR('No active services found in database'))
+            return
 
         # Create tickets with different statuses
         statuses = ['new', 'assigned', 'in_progress', 'pending', 'resolved', 'closed']
         
         for ticket_data in ticket_samples:
             status = random.choice(statuses)
-            # Use the single service for all tickets
+            service = random.choice(services)  # Randomly select from existing services
             
             ticket = Ticket.objects.create(
                 title=ticket_data['title'],
@@ -224,7 +208,7 @@ class Command(BaseCommand):
             if random.choice([True, False]):
                 # Randomly select 1-3 attachments
                 selected_attachments = random.sample(list(attachment_samples.items()),
-                                                  random.randint(1, min(3, len(attachment_samples))))
+                                               random.randint(1, min(3, len(attachment_samples))))
                 for filename, content in selected_attachments:
                     attachment = TicketAttachment.objects.create(
                         ticket=ticket,
@@ -239,3 +223,137 @@ class Command(BaseCommand):
                     )
 
         self.stdout.write(self.style.SUCCESS('Successfully created sample tickets'))
+
+        # Create Knowledge Base Articles
+        try:
+            # Create categories
+            categories_data = [
+                {'name': 'Hardware', 'description': 'Hardware-related articles and guides'},
+                {'name': 'Software', 'description': 'Software installation and troubleshooting'},
+                {'name': 'Network', 'description': 'Network configuration and issues'},
+                {'name': 'Security', 'description': 'Security best practices and guides'},
+                {'name': 'Common Issues', 'description': 'Frequently encountered problems and solutions'}
+            ]
+
+            categories = []
+            for cat_data in categories_data:
+                category, created = ArticleCategory.objects.get_or_create(
+                    name=cat_data['name'],
+                    defaults={'description': cat_data['description']}
+                )
+                categories.append(category)
+
+            # Create tags
+            tags_data = ['Windows', 'Linux', 'Hardware', 'Software', 'Network', 'Security',
+                        'Troubleshooting', 'Guide', 'Tutorial', 'Best Practices']
+            
+            tags = []
+            for tag_name in tags_data:
+                tag, created = Tag.objects.get_or_create(name=tag_name)
+                tags.append(tag)
+
+            # Sample article data
+            articles_data = [
+                {
+                    'title': 'Common Printer Issues and Solutions',
+                    'short_description': 'A comprehensive guide to resolving common printer problems',
+                    'content': '''
+# Common Printer Issues and Solutions
+
+## Connection Issues
+- Check physical connections
+- Verify network connectivity
+- Restart printer and computer
+
+## Paper Jams
+1. Open printer doors carefully
+2. Remove jammed paper gently
+3. Check for torn pieces
+4. Close doors properly
+
+## Driver Problems
+- Update printer drivers
+- Reinstall if necessary
+- Check manufacturer website
+                    ''',
+                    'category': 'Hardware',
+                    'tags': ['Hardware', 'Troubleshooting', 'Guide'],
+                    'is_featured': True
+                },
+                {
+                    'title': 'Network Security Best Practices',
+                    'short_description': 'Essential security practices for maintaining a secure network',
+                    'content': '''
+# Network Security Best Practices
+
+## Password Policies
+- Use strong passwords
+- Regular password changes
+- Two-factor authentication
+
+## Firewall Configuration
+1. Enable firewall
+2. Configure rules properly
+3. Regular monitoring
+4. Log analysis
+
+## Access Control
+- Implement least privilege
+- Regular access reviews
+- Monitor suspicious activity
+                    ''',
+                    'category': 'Security',
+                    'tags': ['Security', 'Network', 'Best Practices'],
+                    'is_featured': True
+                },
+                {
+                    'title': 'Software Installation Guide',
+                    'short_description': 'Step-by-step guide for software installation',
+                    'content': '''
+# Software Installation Guide
+
+## Pre-installation Steps
+1. Check system requirements
+2. Backup important data
+3. Close other applications
+
+## Installation Process
+- Download from official source
+- Verify checksums
+- Run as administrator
+- Follow wizard steps
+
+## Post-installation
+- Update to latest version
+- Configure settings
+- Test functionality
+                    ''',
+                    'category': 'Software',
+                    'tags': ['Software', 'Guide', 'Tutorial'],
+                    'is_featured': False
+                }
+            ]
+
+            # Create articles
+            for article_data in articles_data:
+                # Get category
+                category = ArticleCategory.objects.get(name=article_data['category'])
+                
+                # Create article
+                article = KnowledgeBaseArticle.objects.create(
+                    title=article_data['title'],
+                    short_description=article_data['short_description'],
+                    content=article_data['content'],
+                    category=category,
+                    created_by=technician,
+                    updated_by=technician,
+                    is_published=True,
+                    is_featured=article_data['is_featured'],
+                    status='published',
+                    tags_json=json.dumps(article_data['tags'])
+                )
+
+            self.stdout.write(self.style.SUCCESS('Successfully created knowledge base articles'))
+
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'Error creating knowledge base articles: {str(e)}'))
