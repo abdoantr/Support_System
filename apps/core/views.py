@@ -2168,15 +2168,24 @@ def technician_profile(request):
         if resolution_times:
             avg_resolution_time = sum(resolution_times) / len(resolution_times)
     
+        # Calculate efficiency based on a 24-hour target
+        efficiency = 0
+        if avg_resolution_time >= 0: # Ensure avg_resolution_time is not negative
+            # Efficiency decreases as resolution time increases
+            # Target time is 24 hours. Efficiency is 100% at 0 hours, 0% at 24 hours.
+            # Formula: (TargetTime - ActualTime) / TargetTime * 100
+            target_time = 24
+            efficiency = max(0, (target_time - avg_resolution_time) / target_time * 100) # Ensure efficiency is not negative
+    
     # Get KB articles count
-    kb_articles_count = KnowledgeBaseArticle.objects.filter(author=request.user).count()
+    kb_articles_count = KnowledgeBaseArticle.objects.filter(created_by=request.user).count()
     
     # Get recent activity
     recent_tickets = assigned_tickets.order_by('-updated_at')[:5]
     
     # Get recent comments by the technician
     recent_comments = Comment.objects.filter(
-        user=request.user
+        author=request.user
     ).order_by('-created_at')[:5]
     
     # Calculate performance metrics
@@ -2191,7 +2200,8 @@ def technician_profile(request):
     performance = {
         'resolution_rate': resolution_rate,
         'avg_resolution_time': round(avg_resolution_time, 1),
-        'customer_satisfaction': satisfaction_rating
+        'customer_satisfaction': satisfaction_rating,
+        'efficiency': round(efficiency, 1) # Add efficiency here
     }
     
     # Check if technician is available

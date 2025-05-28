@@ -1,5 +1,7 @@
 {% extends 'technician/base.html' %}
 
+{% load custom_filters %}
+
 {% block title %}My Profile{% endblock %}
 
 {% block extra_css %}
@@ -24,7 +26,6 @@
         border-radius: 15px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         overflow: hidden;
-        height: 100%;
         transition: all 0.3s;
     }
     
@@ -236,9 +237,7 @@
                             <span>{{ performance.avg_resolution_time }} hours</span>
                         </div>
                         <div class="progress">
-                            {% with efficiency=100|sub:performance.avg_resolution_time|div:24|mul:100 %}
-                            <div class="progress-bar bg-info" role="progressbar" style="width: {% if efficiency < 0 %}0{% elif efficiency > 100 %}100{% else %}{{ efficiency }}{% endif %}%" aria-valuenow="{{ efficiency }}" aria-valuemin="0" aria-valuemax="100"></div>
-                            {% endwith %}
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {% if performance.efficiency < 0 %}0{% elif performance.efficiency > 100 %}100{% else %}{{ performance.efficiency }}{% endif %}%" aria-valuenow="{{ performance.efficiency }}" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
                     

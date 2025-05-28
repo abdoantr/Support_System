@@ -1,5 +1,6 @@
 {% extends 'technician/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}Ticket #{{ ticket.id }} - {{ ticket.title }}{% endblock %}
 
@@ -387,32 +388,31 @@
             </div>
             <div class="card-body">
                 <div class="timeline">
-                    {% for activity in activities %}
-                        {% if activity.type == 'comment' %}
-                            <div class="timeline-item comment">
-                                <div class="timeline-header">
-                                    <div class="comment-author">
-                                        <div class="comment-author-avatar">
-                                            {% if activity.user.get_initials %}
-                                                {{ activity.user.get_initials }}
-                                            {% else %}
-                                                <i class="fas fa-user"></i>
-                                            {% endif %}
-                                        </div>
-                                        {{ activity.user.get_full_name|default:activity.user.username }}
-                                        {% if activity.is_internal %}
-                                            <span class="badge bg-secondary ms-2">Internal</span>
+                    {% for comment in comments %}
+                        <div class="timeline-item comment">
+                            <div class="timeline-header">
+                                <div class="comment-author">
+                                    <div class="comment-author-avatar">
+                                        {% if comment.author.get_initials %}
+                                            {{ comment.author.get_initials }}
+                                        {% else %}
+                                            <i class="fas fa-user"></i>
                                         {% endif %}
                                     </div>
-                                    <div class="timeline-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
+                                    {{ comment.author.get_full_name|default:comment.author.username }}
+                                    {% if comment.is_internal %}
+                                        <span class="badge bg-secondary ms-2">Internal</span>
+                                    {% endif %}
                                 </div>
-                                <div class="timeline-content">
-                                    {{ activity.content|linebreaks }}
+                                <div class="timeline-timestamp">{{ comment.created_at|date:"M d, Y H:i" }}</div>
+                            </div>
+                            <div class="timeline-content">
+                                {{ comment.content|linebreaks }}
                                     
-                                    {% if activity.attachments.exists %}
+                                    {% if comment.attachments.exists %}
                                         <div class="mt-3">
                                             <div class="fw-bold mb-2">Attachments:</div>
-                                            {% for attachment in activity.attachments.all %}
+                                            {% for attachment in comment.attachments.all %}
                                                 <div class="attachment-item">
                                                     <div class="attachment-icon">
                                                         <i class="fas fa-paperclip"></i>
@@ -430,59 +430,6 @@
                                     {% endif %}
                                 </div>
                             </div>
-                        {% elif activity.type == 'status_change' %}
-                            <div class="timeline-item status-change">
-                                <div class="timeline-header">
-                                    <div class="timeline-title">Status Changed</div>
-                                    <div class="timeline-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
-                                </div>
-                                <div class="timeline-content">
-                                    <p>
-                                        {{ activity.user.get_full_name|default:activity.user.username }} changed status from 
-                                        <span class="status-badge status-{{ activity.from_status|slugify }}">{{ activity.from_status_display }}</span> to 
-                                        <span class="status-badge status-{{ activity.to_status|slugify }}">{{ activity.to_status_display }}</span>
-                                    </p>
-                                    {% if activity.note %}
-                                        <div class="mt-2">
-                                            <strong>Note:</strong> {{ activity.note }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% elif activity.type == 'assignment' %}
-                            <div class="timeline-item assignment">
-                                <div class="timeline-header">
-                                    <div class="timeline-title">Assignment Changed</div>
-                                    <div class="timeline-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
-                                </div>
-                                <div class="timeline-content">
-                                    <p>
-                                        {{ activity.user.get_full_name|default:activity.user.username }} 
-                                        {% if activity.from_user %}
-                                            reassigned ticket from {{ activity.from_user.get_full_name|default:activity.from_user.username }} to 
-                                        {% else %}
-                                            assigned ticket to 
-                                        {% endif %}
-                                        {{ activity.to_user.get_full_name|default:activity.to_user.username }}
-                                    </p>
-                                    {% if activity.note %}
-                                        <div class="mt-2">
-                                            <strong>Note:</strong> {{ activity.note }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="timeline-item">
-                                <div class="timeline-header">
-                                    <div class="timeline-title">{{ activity.title }}</div>
-                                    <div class="timeline-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
-                                </div>
-                                <div class="timeline-content">
-                                    <p>{{ activity.description }}</p>
-                                </div>
-                            </div>
-                        {% endif %}
                     {% empty %}
                         <div class="text-center text-muted py-4">
                             <i class="fas fa-comments fa-2x mb-3"></i>
