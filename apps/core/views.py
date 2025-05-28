@@ -1471,16 +1471,20 @@ def technician_dashboard(request):
         filter_date = now - timedelta(days=90)
     
     # Get tickets assigned to this technician
-    tickets_query = Ticket.objects.filter(assigned_to=request.user)
-    
-    # Apply date filter if specified
-    if filter_date:
-        if isinstance(filter_date, datetime.date):
-            # For "today", filter by date
-            tickets_query = tickets_query.filter(created_at__date=filter_date)
-        else:
-            # For other periods, filter by range
-            tickets_query = tickets_query.filter(created_at__gte=filter_date)
+    try:
+        tickets_query = Ticket.objects.filter(assigned_to=request.user)
+        
+        # Apply date filter if specified
+        if filter_date:
+            if isinstance(filter_date, datetime.date):
+                # For "today", filter by date
+                tickets_query = tickets_query.filter(created_at__date=filter_date)
+            else:
+                # For other periods, filter by range
+                tickets_query = tickets_query.filter(created_at__gte=filter_date)
+    except Exception as e:
+        logger.error(f"Error fetching tickets: {str(e)}")
+        tickets_query = Ticket.objects.none()  # Empty queryset as fallback
     
     # Get assigned tickets with pagination
     paginator = Paginator(tickets_query.order_by('-created_at'), 10)
@@ -1534,7 +1538,11 @@ def technician_dashboard(request):
     sla_alerts = []
     
     # Get tickets that are at risk of breaching SLA
-    at_risk_tickets = tickets_query.filter(status__in=['new', 'in_progress'])
+    try:
+        at_risk_tickets = tickets_query.filter(status__in=['new', 'in_progress'])
+    except Exception as e:
+        logger.error(f"Error fetching at-risk tickets: {str(e)}")
+        at_risk_tickets = []
     
     for ticket in at_risk_tickets:
         # Calculate SLA based on priority
@@ -1572,7 +1580,12 @@ def technician_dashboard(request):
     team_performance = []
     
     # Get technicians (users with role='technician')
-    technicians = User.objects.filter(role='technician')
+    # Use appropriate method to get technicians based on how User model is structured
+    try:
+        technicians = User.objects.filter(role='technician')
+    except:
+        # Fallback in case role field isn't directly on the User model
+        technicians = User.objects.all().filter(is_staff=False, is_superuser=False)
     
     for technician in technicians:
         # Skip if this is the current user
@@ -1624,9 +1637,9 @@ def technician_dashboard(request):
         
         # Add technician performance data
         team_performance.append({
-            'name': technician.get_full_name() or technician.username,
-            'initials': technician.get_initials(),
-            'avatar': technician.avatar.url if hasattr(technician, 'avatar') and technician.avatar else None,
+            'name': technician.get_full_name() if hasattr(technician, 'get_full_name') else technician.username,
+            'initials': technician.get_initials() if hasattr(technician, 'get_initials') else technician.username[:2].upper(),
+            'avatar': technician.avatar.url if hasattr(technician, 'avatar') and technician.avatar and hasattr(technician.avatar, 'url') else None,
             'assigned': assigned_count,
             'resolved': resolved_count,
             'avg_response': tech_avg_response,
@@ -1641,24 +1654,156 @@ def technician_dashboard(request):
     # This assumes you have a KnowledgeBaseArticle model - adjust as needed
     try:
         from apps.kb.models import KnowledgeBaseArticle
-        recent_kb_articles = KnowledgeBaseArticle.objects.filter(
-            is_published=True
-        ).order_by('-created_at')[:5]
-    except:
+        try:
+            recent_kb_articles = KnowledgeBaseArticle.objects.filter(
+                is_published=True
+            ).order_by('-created_at')[:5]
+        except Exception as e:
+            logger.error(f"Error fetching knowledge base articles: {str(e)}")
+            recent_kb_articles = []
+    except ImportError as e:
+        logger.error(f"Knowledge base module not available: {str(e)}")
         # If the KB module doesn't exist yet, use empty list
         recent_kb_articles = []
     
+    # Calculate additional ticket counts that are missing
+    try:
+        in_progress_tickets_count = tickets_query.filter(status='in_progress').count()
+    except Exception as e:
+        logger.error(f"Error counting in-progress tickets: {str(e)}")
+        in_progress_tickets_count = 0
+    
+    try:
+        # For overdue tickets, we need to identify tickets past their due date or SLA
+        # If there's a due_date field, we can use it
+        overdue_tickets_count = 0
+        if hasattr(Ticket, 'due_date'):
+            overdue_tickets_count = tickets_query.filter(
+                status__in=['new', 'in_progress'],
+                due_date__lt=now
+            ).count()
+        else:
+            # If no due_date field, count tickets with SLA breached
+            overdue_tickets_count = len([alert for alert in sla_alerts if alert['severity'] == 'high'])
+    except Exception as e:
+        logger.error(f"Error counting overdue tickets: {str(e)}")
+        overdue_tickets_count = 0
+    
+    # Get recent activities for the activity feed
+    try:
+        recent_activities = []
+        # Get recent comments by this technician
+        recent_comments = Comment.objects.filter(
+            author=request.user
+        ).select_related('ticket').order_by('-created_at')[:5]
+        
+        for comment in recent_comments:
+            recent_activities.append({
+                'description': f"You commented on ticket #{comment.ticket.id}: {comment.ticket.title}",
+                'timestamp': comment.created_at
+            })
+        
+        # Get recent ticket assignments
+        recent_assignments = tickets_query.filter(
+            assigned_to=request.user
+        ).order_by('-updated_at')[:5]
+        
+        for ticket in recent_assignments:
+            recent_activities.append({
+                'description': f"Ticket #{ticket.id} assigned to you: {ticket.title}",
+                'timestamp': ticket.updated_at
+            })
+        
+        # Sort activities by timestamp
+        recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+        recent_activities = recent_activities[:5]  # Limit to 5 most recent
+    except Exception as e:
+        logger.error(f"Error preparing activity feed: {str(e)}")
+        recent_activities = []
+        
+    # Make sure resolved_tickets_count is defined
+    if 'resolved_tickets_count' not in locals():
+        try:
+            resolved_tickets_count = tickets_query.filter(status='resolved').count()
+        except Exception as e:
+            logger.error(f"Error counting resolved tickets: {str(e)}")
+            resolved_tickets_count = 0
+    
+    # Prepare performance chart data
+    try:
+        # Get data for the last 7 days
+        chart_dates = []
+        created_data = []
+        resolved_data = []
+        
+        # Calculate the last 7 days
+        for i in range(6, -1, -1):
+            date = now.date() - timedelta(days=i)
+            date_str = date.strftime('%b %d')
+            chart_dates.append(date_str)
+            
+            # Count tickets created on this date
+            created_count = Ticket.objects.filter(
+                created_at__date=date
+            ).count()
+            created_data.append(created_count)
+            
+            # Count tickets resolved on this date
+            resolved_count = Ticket.objects.filter(
+                status='resolved',
+                resolved_at__date=date
+            ).count()
+            resolved_data.append(resolved_count)
+        
+        # Prepare chart data for the template
+        chart_data = {
+            'labels': chart_dates,
+            'datasets': [
+                {
+                    'label': 'Created Tickets',
+                    'data': created_data,
+                    'backgroundColor': 'rgba(78, 115, 223, 0.2)',
+                    'borderColor': 'rgba(78, 115, 223, 1)',
+                },
+                {
+                    'label': 'Resolved Tickets',
+                    'data': resolved_data,
+                    'backgroundColor': 'rgba(28, 200, 138, 0.2)',
+                    'borderColor': 'rgba(28, 200, 138, 1)',
+                }
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error generating chart data: {str(e)}")
+        chart_data = {
+            'labels': [],
+            'datasets': []
+        }
+        
+    # Get recent tickets for the dashboard
+    try:
+        recent_tickets = tickets_query.order_by('-created_at')[:5]
+    except Exception as e:
+        logger.error(f"Error fetching recent tickets: {str(e)}")
+        recent_tickets = []
+        
     # Prepare context
     context = {
         'filter_period': filter_period,
         'assigned_tickets': assigned_tickets,
         'assigned_tickets_count': assigned_tickets_count,
+        'resolved_tickets_count': resolved_tickets_count,
+        'in_progress_tickets_count': in_progress_tickets_count,
+        'overdue_tickets_count': overdue_tickets_count,
         'resolved_today': resolved_today,
         'avg_response_time': avg_response_time,
         'resolution_rate': resolution_rate,
         'sla_alerts': sla_alerts,
         'team_performance': team_performance,
         'recent_kb_articles': recent_kb_articles,
+        'recent_activities': recent_activities,
+        'recent_tickets': recent_tickets,
+        'chart_data': json.dumps(chart_data),  # Convert to JSON for JavaScript
     }
     
     return render(request, 'technician/dashboard.html', context)
@@ -2220,6 +2365,38 @@ def technician_profile(request):
     }
     
     return render(request, 'technician/profile.html', context)
+
+@login_required
+@user_passes_test(is_technician)
+def view_user_profile(request, user_id, ticket_id=None):
+    """
+    View for technicians to see customer profiles
+    """
+    # Get the user by ID
+    user = get_object_or_404(User, id=user_id)
+    
+    # Get user tickets data
+    user_tickets = Ticket.objects.filter(created_by=user)
+    total_tickets = user_tickets.count()
+    resolved_tickets = user_tickets.filter(status__in=["resolved", "closed"]).count()
+    open_tickets = total_tickets - resolved_tickets
+    
+    # Get recent activities
+    recent_tickets = user_tickets.order_by("-created_at")[:5]
+    recent_comments = Comment.objects.filter(ticket__in=user_tickets, author=user).order_by("-created_at")[:5]
+    
+    context = {
+        "viewed_user": user,  # The user being viewed
+        "total_tickets": total_tickets,
+        "resolved_tickets": resolved_tickets,
+        "open_tickets": open_tickets,
+        "recent_tickets": recent_tickets,
+        "recent_comments": recent_comments,
+        "is_customer_view": True,  # Flag to indicate this is a customer being viewed
+        "ticket_id": ticket_id,  # Add the ticket_id to context for back navigation
+    }
+    
+    return render(request, "technician/user_profile.html", context)
 
 def technician_knowledge_base(request):
     """

@@ -221,12 +221,95 @@ function applyFilter(filterType) {
  * Initialize charts
  */
 function initCharts() {
-    // This would initialize charts using a library like Chart.js
-    // For now, just check if chart elements exist
-    if (document.getElementById('ticketsChart')) {
-        console.log('Chart initialization would happen here');
-        // Add real chart initialization when chart library is included
+    console.log('Initializing charts...');
+    // Check if the performance chart element exists
+    const performanceChartElement = document.getElementById('performanceChart');
+    if (!performanceChartElement) {
+        console.error('Chart element not found on page');
+        return;
     }
+    
+    // Check if chart data is available in global scope (set in the template)
+    if (typeof window.chartData === 'undefined' || window.chartData === null) {
+        console.error('Chart data not found. Make sure it is properly passed from the backend.');
+        performanceChartElement.innerHTML = '<div class="text-center py-5"><p class="text-muted">No performance data available</p></div>';
+        return;
+    }
+    
+    console.log('Chart data found:', window.chartData);
+    
+    try {
+        // Check if Chart.js is loaded
+        if (typeof Chart === 'undefined') {
+            console.log('Chart.js not loaded, loading dynamically...');
+            // If Chart.js is not loaded, dynamically load it
+            loadChartJs().then(() => {
+                console.log('Chart.js loaded dynamically, rendering chart...');
+                renderPerformanceChart(performanceChartElement, window.chartData);
+            });
+        } else {
+            console.log('Chart.js already loaded, rendering chart...');
+            // Chart.js is already loaded, render the chart
+            renderPerformanceChart(performanceChartElement, window.chartData);
+        }
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+        // Show a message in the chart container
+        performanceChartElement.innerHTML = '<div class="text-center py-5"><p class="text-muted">Could not load performance data</p></div>';
+    }
+}
+
+/**
+ * Dynamically load Chart.js if not already loaded
+ */
+function loadChartJs() {
+    return new Promise((resolve, reject) => {
+        // Check if it's already loaded
+        if (typeof Chart !== 'undefined') {
+            resolve();
+            return;
+        }
+        
+        // Create script element to load Chart.js from CDN
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js';
+        script.integrity = 'sha256-ErZ09KkZnzjpqcane4SCyyHsKAXMvID9/xwbl/Aq1pc=';
+        script.crossOrigin = 'anonymous';
+        
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Chart.js'));
+        
+        document.head.appendChild(script);
+    });
+}
+
+/**
+ * Render the performance chart
+ */
+function renderPerformanceChart(chartElement, data) {
+    // Create a new chart instance
+    const ctx = chartElement.getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0 // Only show whole numbers
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
 }
 
 /**

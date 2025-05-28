@@ -5,21 +5,56 @@
 
 {% block extra_css %}
 <style>
+    /* Dashboard Styles */
     .stat-card {
         border-radius: 10px;
         overflow: hidden;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: all 0.3s ease;
     }
     .stat-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 6px 15px rgba(0,0,0,0.15);
     }
-    .stat-card.primary { background: linear-gradient(135deg, #4e73df, #3755c2); }
-    .stat-card.success { background: linear-gradient(135deg, #1cc88a, #169969); }
-    .stat-card.warning { background: linear-gradient(135deg, #f6c23e, #d9a420); }
-    .stat-card.danger { background: linear-gradient(135deg, #e74a3b, #c23321); }
+    .stat-icon {
+        width: 4rem;
+        height: 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1.8rem;
+        margin-right: 1rem;
+    }
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+    }
     
+    /* Status and Priority Badge Styles */
+    .status-badge, .priority-badge {
+        padding: 0.35em 0.65em;
+        border-radius: 0.25rem;
+        font-size: 0.75em;
+        font-weight: 700;
+        transition: all 0.2s ease;
+    }
+    .status-badge:hover, .priority-badge:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .status-new { background-color: #e1f5fe; color: #0288d1; }
+    .status-in_progress { background-color: #fff8e1; color: #ffa000; }
+    .status-on_hold { background-color: #f3e5f5; color: #7b1fa2; }
+    .status-resolved { background-color: #e8f5e9; color: #2e7d32; }
+    .status-closed { background-color: #f5f5f5; color: #616161; }
+
+    .priority-low { background-color: #e8f5e9; color: #2e7d32; }
+    .priority-medium { background-color: #fff8e1; color: #ffa000; }
+    .priority-high { background-color: #ffebee; color: #c62828; }
+    .priority-urgent { background-color: #b71c1c; color: white; }
+
     .stat-icon {
         font-size: 2.5rem;
         opacity: 0.8;
@@ -209,14 +244,14 @@
                                 <tr class="ticket-list-item">
                                     <td>#{{ ticket.id }}</td>
                                     <td>{{ ticket.subject }}</td>
-                                    <td>{{ ticket.customer.get_full_name|default:ticket.customer.username }}</td>
+                                    <td>{{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</td>
                                     <td>
-                                        <span class="badge bg-{{ ticket.get_status_color }}">
+                                        <span class="badge status-{{ ticket.status }} status-badge">
                                             {{ ticket.get_status_display }}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-{{ ticket.get_priority_color }}">
+                                        <span class="badge priority-{{ ticket.priority }} priority-badge">
                                             {{ ticket.get_priority_display }}
                                         </span>
                                     </td>
@@ -244,8 +279,24 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Load Chart.js library first -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+
+<!-- Set up chart data from backend as a global variable -->
+<script type="text/javascript">
+    // Initialize chart data as a global variable accessible to technician-dashboard.js
+    window.chartData = null;
+    {% if chart_data %}
+        window.chartData = {{ chart_data|safe }};
+    {% endif %}
+    console.log('Chart data initialized:', window.chartData);
+</script>
+
+<!-- Load the technician dashboard JS file -->
+<script src="{% static 'js/technician-dashboard.js' %}"></script>
+
+<!-- Dashboard initialization -->
+<script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize stat counters with animation
         document.querySelectorAll('.stat-value').forEach(function(element) {
@@ -253,72 +304,27 @@
             animateCounter(element, 0, target, 1500);
         });
         
-        // Initialize performance chart
-        const ctx = document.getElementById('performanceChart');
-        if (ctx) {
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                    datasets: [{
-                        label: 'Tickets Resolved',
-                        backgroundColor: 'rgba(78, 115, 223, 0.05)',
-                        borderColor: 'rgba(78, 115, 223, 1)',
-                        pointRadius: 3,
-                        pointBackgroundColor: 'rgba(78, 115, 223, 1)',
-                        pointBorderColor: 'rgba(78, 115, 223, 1)',
-                        pointHoverRadius: 5,
-                        pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
-                        pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
-                        pointHitRadius: 10,
-                        pointBorderWidth: 2,
-                        data: [{{ performance_data|default:'5, 10, 8, 15' }}],
-                        fill: true
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 25,
-                            top: 25,
-                            bottom: 0
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+        // Initialize the chart using the external JS file
+        if (typeof initCharts === 'function') {
+            console.log('Calling initCharts function from technician-dashboard.js');
+            initCharts();
+        } else {
+            console.error('initCharts function not found. Make sure technician-dashboard.js is loaded properly.');
+        }
+
+        function animateCounter(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                element.innerText = value;
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
                 }
-            });
+            };
+            window.requestAnimationFrame(step);
         }
     });
-
-    function animateCounter(element, start, end, duration) {
-        let startTimestamp = null;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            const value = Math.floor(progress * (end - start) + start);
-            element.innerText = value;
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            }
-        };
-        window.requestAnimationFrame(step);
-    }
 </script>
 {% endblock %} 

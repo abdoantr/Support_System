@@ -34,6 +34,8 @@ urlpatterns = [
     path('technician/tickets/<int:ticket_id>/assign/', views.technician_assign_ticket, name='technician_assign_ticket'),
     path('technician/tickets/<int:ticket_id>/escalate/', views.technician_escalate_ticket, name='technician_escalate_ticket'),
     path('technician/tickets/<int:ticket_id>/comment/', views.technician_add_comment, name='technician_add_comment'),
+    path('user/<int:user_id>/profile/', views.view_user_profile, name='view_user_profile'),
+    path('user/<int:user_id>/profile/<int:ticket_id>/', views.view_user_profile, name='view_user_profile_with_ticket'),
     path('technician/profile/', views.technician_profile, name='technician_profile'),
     path('technician/toggle-availability/', views.toggle_availability, name='toggle_availability'),
     path('technician/knowledge-base/', views.technician_knowledge_base, name='technician_knowledge_base'),
@@ -71,6 +73,7 @@ urlpatterns = [
     
     # Profile (requires login)
     path('profile/', views.profile, name='profile'),
+    path('profile/<int:user_id>/', views.view_user_profile, name='view_user_profile'),
     path('profile/update/', views.update_profile, name='update_profile'),
     path('profile/update-picture/', views.update_profile_picture, name='update_profile_picture'),
     path('profile/toggle-availability/', views.toggle_availability, name='toggle_availability'),
