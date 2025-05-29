@@ -7,6 +7,5 @@ py .\manage.py migrate services
 py .\manage.py migrate tickets
 py .\manage.py showmigrations
 py .\manage.py create_sample_services
-py .\manage.py loaddata
 py .\manage.py runserver
 
